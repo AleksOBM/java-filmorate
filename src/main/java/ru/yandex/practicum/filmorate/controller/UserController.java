@@ -27,163 +27,102 @@ public class UserController {
     public User create(@RequestBody User user) {
 
         log.info("Добавления нового пользователя:");
+        userValidate(user);
 
-        try {
-            log.trace("Обработка электронной почты");
-
-            if (user.getEmail() == null || user.getEmail().isBlank()) {
-                throw new ValidationException("Электронная почта не может быть пустой.");
-            } else if (!user.getEmail().contains("@")) {
-                throw new ValidationException("Электронная почта должна содержать символ '@'.");
-            } else if (users.values().stream().map(User::getEmail).anyMatch(u -> u.equals(user.getEmail()))) {
-                throw new ValidationException("Эта электронная почта уже используется.");
-            } else {
-                log.trace("Электронная почта обработана");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Добавление не удалось.");
-            throw new RuntimeException(exception.getMessage());
-        }
-
-        try {
-            log.trace("Обработка логина");
-
-            if (user.getLogin() == null || user.getLogin().isBlank()) {
-                throw new ValidationException("Логин не может быть пустым.");
-            } else if (user.getLogin().contains(" ")) {
-                throw new ValidationException("Логин не должен содержать пробелов.");
-            } else {
-                log.trace("Логин обработан");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Добавление не удалось.");
-            throw new RuntimeException(exception.getMessage());
-        }
-
-        log.trace("Обработка имени пользователя");
-        if (user.getName() == null || user.getName().isBlank()) {
+        log.trace("Обработка имени нового пользователя");
+        if ((user.getName() == null) || (user.getName().isBlank())) {
             user.setName(user.getLogin());
-            log.trace("Пользователю присвоено имя из логина");
-        } else {
-            log.trace("Имя пользователя обработано");
+            log.trace("Пользователю присвоено имя из логина.");
         }
 
-        try {
-            log.trace("Обработка даты рождения");
-
-            if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-                throw new ValidationException("Дата рождения не может быть в будущем.");
-            } else {
-                log.trace("Дата рождения обработана");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Добавление не удалось.");
-            throw new RuntimeException(exception.getMessage());
+        log.trace("Проверка даты рождения нового пользователя");
+        if (user.getBirthday() == null) {
+            throw new ValidationException("Дата рождения должна быть указана.");
         }
 
         log.trace("Сохранение нового пользователя");
         user.setId(getNextId());
         users.put(user.getId(), user);
-        log.info("Новый пользователь с id={} успешно добавлен", user.getId());
         return user;
     }
 
     @PutMapping
-    public User update(@RequestBody User newUser) {
-
+    public User update(@RequestBody User user) {
         log.info("Обновление данных о пользователе:");
 
-        try {
-            log.trace("Проверка id пользователя");
-
-            if (newUser.getId() == null) {
-                throw new ValidationException("Id должен быть указан");
-            } else if (!users.containsKey(newUser.getId())) {
-                throw new ValidationException("Пользователь с id = " + newUser.getId() + " не найден");
-            } else {
-                log.trace("id пользователя проверен");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Обновление не удалось.");
-            throw new RuntimeException(exception.getMessage());
+        log.trace("Проверка id пользователя");
+        if (user.getId() == null) {
+            throw new ValidationException("Id должен быть указан.");
+        } else if (!users.containsKey(user.getId())) {
+            throw new ValidationException("Пользователь с id = " + user.getId() + " не найден.");
         }
+
+        userValidate(user);
 
         log.trace("Получение текущих данных о пользователе");
-        User oldUser = users.get(newUser.getId());
-        log.trace("Текущие данные получены");
+        User oldUser = users.get(user.getId());
 
-        try {
-            log.trace("Проверка логина");
-
-            if (newUser.getLogin() == null) {
-                newUser.setLogin(oldUser.getLogin());
-            } else if (newUser.getLogin().isBlank()) {
-                throw new ValidationException("Логин не может быть пустым.");
-            } else if (newUser.getLogin().contains(" ")) {
-                throw new ValidationException("Логин не должен содержать пробелов.");
-            } else {
-                log.info("Логин пользователя изменен");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Обновление не удалось.");
-            throw new RuntimeException(exception.getMessage());
-        }
-
-            log.trace("Проверка имени пользователя");
-            if (newUser.getName() == null) {
-                newUser.setName(oldUser.getName());
-            } else if (newUser.getName().isBlank()) {
-                newUser.setName(newUser.getLogin());
-            } else {
-                log.info("Имя пользователя изменено");
-            }
-
-        try {
-            log.trace("Проверка электронной почты");
-
-            if (newUser.getEmail() == null) {
-                newUser.setEmail(oldUser.getEmail());
-            } else if (newUser.getEmail().isBlank()) {
-                throw new ValidationException("Электронная почта не может быть пустой.");
-            } else if (!newUser.getEmail().contains("@")) {
-                throw new ValidationException("Электронная почта должна содержать символ '@'.");
-            } else if (users.values().stream()
-                    .filter(user -> !(user.getId().equals(newUser.getId())))
-                    .map(User::getEmail)
-                    .anyMatch(u -> u.equals(newUser.getEmail()))) {
-                throw new ValidationException("Эта электронная почта уже используется.");
-            } else {
-                log.info("Электронная почта изменена");
-            }
-
-        } catch (ValidationException exception) {
-            log.debug(exception.getMessage());
-            log.error("Обновление не удалось.");
-            throw new RuntimeException(exception.getMessage());
-        }
-
-        log.trace("Поверка даты рождения");
-        if (newUser.getBirthday() == null) {
-            newUser.setBirthday(oldUser.getBirthday());
+        log.trace("Обработка логина");
+        if (user.getLogin() == null) {
+            user.setLogin(oldUser.getLogin());
         } else {
-            log.info("Дата рождения изменена");
+            log.info("Логин пользователя изменен.");
+        }
+
+        log.trace("Обработка имени пользователя");
+        if (user.getName() == null) {
+            user.setName(oldUser.getName());
+        } else if ((user.getName().isBlank())) {
+            user.setName(user.getLogin());
+        } else {
+            log.info("Имя пользователя изменено.");
+        }
+
+        log.trace("Обработка электронной почты");
+        if (user.getEmail() == null) {
+            user.setEmail(oldUser.getEmail());
+        } else {
+            log.info("Электронная почта изменена.");
+        }
+
+        log.trace("Обработка даты рождения");
+        if (user.getBirthday() == null) {
+            user.setBirthday(oldUser.getBirthday());
+        } else {
+            log.info("Дата рождения изменена.");
         }
 
         log.trace("Сохранение новых данных пользователя");
-        oldUser = newUser.toBuilder().build();
+        oldUser = user.toBuilder().build();
         users.put(oldUser.getId(), oldUser);
-        log.info("Данные пользователя с id={} успешно обновлены", oldUser.getId());
         return oldUser;
+    }
+
+    private void userValidate(User user) {
+        log.info("Проверка пользователя:");
+
+        log.trace("Проверка электронной почты");
+        if ((user.getEmail() != null) && (user.getEmail().isBlank())) {
+            throw new ValidationException("Электронная почта не может быть пустой.");
+        } else if ((user.getEmail() != null) && !(user.getEmail().contains("@"))) {
+            throw new ValidationException("Электронная почта должна содержать символ '@'.");
+        } else if ((user.getEmail() != null) &&
+                users.values().stream().map(User::getEmail).anyMatch(u -> u.equals(user.getEmail()))
+        ) {
+            throw new ValidationException("Эта электронная почта уже используется.");
+        }
+
+        log.trace("Проверка логина");
+        if ((user.getLogin() != null) && (user.getLogin().isBlank())) {
+            throw new ValidationException("Логин не может быть пустым.");
+        } else if ((user.getLogin() != null) && (user.getLogin().contains(" "))) {
+            throw new ValidationException("Логин не должен содержать пробелов.");
+        }
+
+        log.trace("Проверка даты рождения");
+        if ((user.getBirthday() != null) && (user.getBirthday().isAfter(LocalDate.now()))) {
+            throw new ValidationException("Дата рождения не может быть в будущем.");
+        }
     }
 
     private int getNextId() {
@@ -195,5 +134,4 @@ public class UserController {
                 .orElse(0);
         return ++currentMaxId;
     }
-
 }

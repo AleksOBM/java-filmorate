@@ -42,6 +42,7 @@ class FilmorateApplicationTests {
     @Test
     void createUserSuccessTest() {
         shouldReturnActualUserAfterCreate();
+        shouldReturnUserNameOfNewLoginAfterCreateUserWithEmptyUserName();
     }
 
     @Test
@@ -52,12 +53,13 @@ class FilmorateApplicationTests {
         shouldReturnExceptionAfterTryCreateUserWithEmptyLogin();
         shouldReturnExceptionAfterTryCreateUserWithNotValidLogin();
         shouldReturnExceptionAfterTryCreateUserWithBirthdayAtFuture();
+        shouldReturnExceptionAfterTryCreateUserWithoutBirthday();
     }
 
     @Test
     void updateUserSuccessTest() {
         shouldReturnActualUserAfterUpdate();
-        shouldReturnOldUserNameAfterUpdateUserWithEmptyUserName();
+        shouldReturnUserNameOfNewLoginAfterUpdateUserWithEmptyUserName();
         shouldReturnOldUserEqualsNewLoginNameAfterUpdateUserWithoutUserName();
         shouldReturnOldUserFieldsAfterUpdateWithoutThisFields();
     }
@@ -85,8 +87,11 @@ class FilmorateApplicationTests {
         shouldReturnExceptionAfterTryCreateFilmWithoutReleaseDate();
         shouldReturnExceptionAfterTryCreateFilmWithTooEarlyReleaseDate();
         shouldReturnExceptionAfterTryCreateFilmWithReleaseDateAtFuture();
+        shouldReturnExceptionAfterTryCreateFilmWithEmptyDuration();
         shouldReturnExceptionAfterTryCreateFilmWithNegativeDuration();
         shouldReturnExceptionAfterTryCreateFilmWithNullableDuration();
+        shouldReturnExceptionAfterTryCreateFilmWithNullableFilm();
+        shouldReturnExceptionAfterTryCreateFilmWithoutName();
     }
 
     @Test
@@ -127,6 +132,23 @@ class FilmorateApplicationTests {
         assertEquals("2000-12-20", user.getBirthday().toString());
     }
 
+
+    @SortedPosition(method = "createUserSuccessTest", position = 2)
+    private void shouldReturnUserNameOfNewLoginAfterCreateUserWithEmptyUserName() {
+        userController.create(User.builder()
+                .name("")
+                .login("User3")
+                .email("user3@main.com")
+                .birthday(LocalDate.of(2001, 10, 7))
+                .build());
+        User user = userController.findAll().stream().filter(u -> u.getId() == 3)
+                .findFirst().orElse(User.builder().build());
+        assertEquals("User3", user.getName());
+        assertEquals("User3", user.getLogin());
+        assertEquals("user3@main.com", user.getEmail());
+        assertEquals("2001-10-07", user.getBirthday().toString());
+    }
+
     /**
      * -----------------------------------------------------------------------------
      */
@@ -135,7 +157,7 @@ class FilmorateApplicationTests {
     private void shouldReturnExceptionAfterTryCreateUserWithEmptyEmail() {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
-                        .login("User3")
+                        .login("User4")
                         .email("")
                         .birthday(LocalDate.of(1995, 12, 20))
                         .build())
@@ -147,8 +169,8 @@ class FilmorateApplicationTests {
     private void shouldReturnExceptionAfterTryCreateUserWithNotValidEmail() {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
-                        .login("User3")
-                        .email("user3main.com")
+                        .login("User4")
+                        .email("user4main.com")
                         .birthday(LocalDate.of(1995, 12, 20))
                         .build())
         );
@@ -159,7 +181,7 @@ class FilmorateApplicationTests {
     private void shouldReturnExceptionAfterTryCreateUserWithDuplicatedEmail() {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
-                        .login("User3")
+                        .login("User4")
                         .email("user1@main.com")
                         .birthday(LocalDate.of(1995, 12, 20))
                         .build())
@@ -172,7 +194,7 @@ class FilmorateApplicationTests {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
                         .login("")
-                        .email("user3@main.com")
+                        .email("user4@main.com")
                         .birthday(LocalDate.of(1995, 12, 20))
                         .build())
         );
@@ -184,7 +206,7 @@ class FilmorateApplicationTests {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
                         .login("User 3")
-                        .email("user3@main.com")
+                        .email("user4@main.com")
                         .birthday(LocalDate.of(1995, 12, 20))
                         .build())
         );
@@ -193,13 +215,36 @@ class FilmorateApplicationTests {
 
     @SortedPosition(method = "createUserFailureTest", position = 6)
     private void shouldReturnExceptionAfterTryCreateUserWithBirthdayAtFuture() {
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userController.create(User.builder()
-                .login("User3")
-                .email("user3@main.com")
-                .birthday(LocalDate.of(3335, 12, 20))
-                .build())
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userController.create(User.builder()
+                        .login("User4")
+                        .email("user4@main.com")
+                        .birthday(LocalDate.of(3335, 12, 20))
+                        .build())
         );
         assertEquals("Дата рождения не может быть в будущем.", exception.getMessage());
+    }
+
+    @SortedPosition(method = "createUserFailureTest", position = 7)
+    private void shouldReturnExceptionAfterTryCreateUserWithoutBirthday() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userController.create(User.builder()
+                        .login("User4")
+                        .email("user4@main.com")
+                        .build())
+        );
+        assertEquals("Дата рождения должна быть указана.", exception.getMessage());
+    }
+
+    @SortedPosition(method = "createUserFailureTest", position = 8)
+    private void shouldReturnExceptionAfterTryCreateUserWithoutUserName() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userController.create(User.builder()
+                        .login("User4")
+                        .email("user4@main.com")
+                        .build())
+        );
+        assertEquals("Дата рождения должна быть указана.", exception.getMessage());
     }
 
     /**
@@ -224,16 +269,17 @@ class FilmorateApplicationTests {
     }
 
     @SortedPosition(method = "updateUserSuccessTest", position = 2)
-    private void shouldReturnOldUserNameAfterUpdateUserWithEmptyUserName() {
+    private void shouldReturnUserNameOfNewLoginAfterUpdateUserWithEmptyUserName() {
         userController.update(User.builder()
                 .id(1)
                 .name("")
+                .login("UpdatedLogin111")
                 .build()
         );
         User user = userController.findAll().stream().findFirst().orElse(User.builder().build());
-        assertEquals("UpdatedLogin", user.getName());
+        assertEquals("UpdatedLogin111", user.getName());
         assertEquals("updated_name@main.com", user.getEmail());
-        assertEquals("UpdatedLogin", user.getLogin());
+        assertEquals("UpdatedLogin111", user.getLogin());
         assertEquals("1999-12-20", user.getBirthday().toString());
     }
 
@@ -245,7 +291,7 @@ class FilmorateApplicationTests {
                 .build()
         );
         User user = userController.findAll().stream().findFirst().orElse(User.builder().build());
-        assertEquals("UpdatedLogin", user.getName());
+        assertEquals("UpdatedLogin111", user.getName());
         assertEquals("updated_name@main.com", user.getEmail());
         assertEquals("UpdatedLogin777", user.getLogin());
         assertEquals("1999-12-20", user.getBirthday().toString());
@@ -258,7 +304,7 @@ class FilmorateApplicationTests {
                 .build()
         );
         User user = userController.findAll().stream().findFirst().orElse(User.builder().build());
-        assertEquals("UpdatedLogin", user.getName());
+        assertEquals("UpdatedLogin111", user.getName());
         assertEquals("updated_name@main.com", user.getEmail());
         assertEquals("UpdatedLogin777", user.getLogin());
         assertEquals("1999-12-20", user.getBirthday().toString());
@@ -275,7 +321,7 @@ class FilmorateApplicationTests {
                         .name("Frank")
                         .build()
                 ));
-        assertEquals("Id должен быть указан", exception.getMessage());
+        assertEquals("Id должен быть указан.", exception.getMessage());
     }
 
     @SortedPosition(method = "updateUserFailureTest", position = 2)
@@ -286,7 +332,7 @@ class FilmorateApplicationTests {
                         .name("Frank")
                         .build()
                 ));
-        assertEquals("Пользователь с id = 3 не найден", exception.getMessage());
+        assertEquals("Пользователь с id = 3 не найден.", exception.getMessage());
     }
 
     @SortedPosition(method = "updateUserFailureTest", position = 3)
@@ -385,6 +431,7 @@ class FilmorateApplicationTests {
                 () -> filmController.create(Film.builder()
                         .name("")
                         .releaseDate(LocalDate.of(2010, 1, 2))
+                        .duration(145)
                         .build()
                 ));
         assertEquals("Название не может быть пустым.", exception.getMessage());
@@ -400,6 +447,7 @@ class FilmorateApplicationTests {
                                 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" +
                                 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
                         .releaseDate(LocalDate.of(2010, 1, 2))
+                        .duration(423)
                         .build()
                 ));
         assertEquals("Максимальная длина описания — 200 символов.", exception.getMessage());
@@ -412,7 +460,7 @@ class FilmorateApplicationTests {
                         .name("XXX")
                         .build()
                 ));
-        assertEquals("Дата релиза должна быть", exception.getMessage());
+        assertEquals("Дата релиза должна быть указана.", exception.getMessage());
     }
 
     @SortedPosition(method = "createFilmFailureTest", position = 4)
@@ -421,6 +469,7 @@ class FilmorateApplicationTests {
                 () -> filmController.create(Film.builder()
                         .name("XXX")
                         .releaseDate(LocalDate.of(1895, 12, 27))
+                        .duration(25)
                         .build()
                 ));
         assertEquals("Дата релиза должна быть не раньше 28 декабря 1895 года.", exception.getMessage());
@@ -432,12 +481,24 @@ class FilmorateApplicationTests {
                 () -> filmController.create(Film.builder()
                         .name("XXX")
                         .releaseDate(LocalDate.of(3895, 12, 27))
+                        .duration(90)
                         .build()
                 ));
-        assertEquals("Дата релиза не должна быть в будущем", exception.getMessage());
+        assertEquals("Дата релиза не должна быть в будущем.", exception.getMessage());
     }
 
     @SortedPosition(method = "createFilmFailureTest", position = 6)
+    private void shouldReturnExceptionAfterTryCreateFilmWithEmptyDuration() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> filmController.create(Film.builder()
+                        .name("XXX")
+                        .releaseDate(LocalDate.of(2021, 12, 27))
+                        .build()
+                ));
+        assertEquals("Продолжительность фильма должна быть указана.", exception.getMessage());
+    }
+
+    @SortedPosition(method = "createFilmFailureTest", position = 7)
     private void shouldReturnExceptionAfterTryCreateFilmWithNegativeDuration() {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> filmController.create(Film.builder()
@@ -449,7 +510,7 @@ class FilmorateApplicationTests {
         assertEquals("Продолжительность фильма должна быть положительным числом.", exception.getMessage());
     }
 
-    @SortedPosition(method = "createFilmFailureTest", position = 7)
+    @SortedPosition(method = "createFilmFailureTest", position = 8)
     private void shouldReturnExceptionAfterTryCreateFilmWithNullableDuration() {
         RuntimeException exception1 = assertThrows(RuntimeException.class,
                 () -> filmController.create(Film.builder()
@@ -459,6 +520,24 @@ class FilmorateApplicationTests {
                         .build()
                 ));
         assertEquals("Продолжительность фильма должна быть положительным числом.", exception1.getMessage());
+    }
+
+    @SortedPosition(method = "createFilmFailureTest", position = 9)
+    private void shouldReturnExceptionAfterTryCreateFilmWithNullableFilm() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> filmController.update(null));
+        assertEquals("Входные данные фильма не распознаны.", exception.getMessage());
+    }
+
+    @SortedPosition(method = "createFilmFailureTest", position = 10)
+    private void shouldReturnExceptionAfterTryCreateFilmWithoutName() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> filmController.create(Film.builder()
+                        .releaseDate(LocalDate.of(2021, 12, 27))
+                        .duration(10)
+                        .build()
+                ));
+        assertEquals("Название должно быть указано.", exception.getMessage());
     }
 
     /**
@@ -505,7 +584,7 @@ class FilmorateApplicationTests {
                         .releaseDate(LocalDate.of(2021, 12, 27))
                         .build()
                 ));
-        assertEquals("Id должен быть указан", exception.getMessage());
+        assertEquals("Id должен быть указан.", exception.getMessage());
     }
 
     @SortedPosition(method = "updateFilmFailureTest", position = 2)
@@ -517,7 +596,7 @@ class FilmorateApplicationTests {
                         .releaseDate(LocalDate.of(2021, 12, 27))
                         .build()
                 ));
-        assertEquals("Пользователь с id = 777 не найден", exception.getMessage());
+        assertEquals("Пользователь с id = 777 не найден.", exception.getMessage());
     }
 
     @SortedPosition(method = "updateFilmFailureTest", position = 3)
@@ -566,7 +645,7 @@ class FilmorateApplicationTests {
                         .releaseDate(LocalDate.of(3895, 1, 27))
                         .build()
                 ));
-        assertEquals("Дата релиза не должна быть в будущем", exception.getMessage());
+        assertEquals("Дата релиза не должна быть в будущем.", exception.getMessage());
     }
 
     @SortedPosition(method = "updateFilmFailureTest", position = 7)
