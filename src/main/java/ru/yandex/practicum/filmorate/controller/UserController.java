@@ -29,6 +29,16 @@ public class UserController {
         log.info("Добавления нового пользователя:");
         userValidate(user);
 
+        log.trace("Проверка логина нового пользователя");
+        if (user.getLogin() == null) {
+            throw new ValidationException("Логин должен быть указан.");
+        }
+
+        log.trace("Проверка даты электронной почты нового пользователя");
+        if (user.getEmail() == null) {
+            throw new ValidationException("Электронная почта должна быть указана.");
+        }
+
         log.trace("Обработка имени нового пользователя");
         if ((user.getName() == null) || (user.getName().isBlank())) {
             user.setName(user.getLogin());
@@ -93,9 +103,8 @@ public class UserController {
         }
 
         log.trace("Сохранение новых данных пользователя");
-        oldUser = user.toBuilder().build();
-        users.put(oldUser.getId(), oldUser);
-        return oldUser;
+        users.put(user.getId(), user);
+        return user;
     }
 
     private void userValidate(User user) {

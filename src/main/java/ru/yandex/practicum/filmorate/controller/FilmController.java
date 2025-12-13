@@ -100,9 +100,8 @@ public class FilmController {
         }
 
         log.trace("Сохранение новых данных о фильме");
-        oldFilm = film.toBuilder().build();
-        films.put(oldFilm.getId(), oldFilm);
-        return oldFilm;
+        films.put(film.getId(), film);
+        return film;
     }
 
     private void filmValidate(Film film) {

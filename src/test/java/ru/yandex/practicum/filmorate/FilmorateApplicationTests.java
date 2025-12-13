@@ -54,6 +54,8 @@ class FilmorateApplicationTests {
         shouldReturnExceptionAfterTryCreateUserWithNotValidLogin();
         shouldReturnExceptionAfterTryCreateUserWithBirthdayAtFuture();
         shouldReturnExceptionAfterTryCreateUserWithoutBirthday();
+        shouldReturnExceptionAfterTryCreateUserWithoutLogin();
+        shouldReturnExceptionAfterTryCreateUserWithoutEmail();
     }
 
     @Test
@@ -236,15 +238,27 @@ class FilmorateApplicationTests {
         assertEquals("Дата рождения должна быть указана.", exception.getMessage());
     }
 
+
     @SortedPosition(method = "createUserFailureTest", position = 8)
-    private void shouldReturnExceptionAfterTryCreateUserWithoutUserName() {
+    private void shouldReturnExceptionAfterTryCreateUserWithoutLogin() {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> userController.create(User.builder()
-                        .login("User4")
+                        .birthday(LocalDate.of(1995, 12, 20))
                         .email("user4@main.com")
                         .build())
         );
-        assertEquals("Дата рождения должна быть указана.", exception.getMessage());
+        assertEquals("Логин должен быть указан.", exception.getMessage());
+    }
+
+    @SortedPosition(method = "createUserFailureTest", position = 9)
+    private void shouldReturnExceptionAfterTryCreateUserWithoutEmail() {
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userController.create(User.builder()
+                        .login("User4")
+                        .birthday(LocalDate.of(1995, 12, 20))
+                        .build())
+        );
+        assertEquals("Электронная почта должна быть указана.", exception.getMessage());
     }
 
     /**
