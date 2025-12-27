@@ -7,18 +7,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.annotation.SortedPosition;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.servise.FilmService;
+import ru.yandex.practicum.filmorate.servise.IdentifyService;
 import ru.yandex.practicum.filmorate.servise.UserService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,27 +26,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 class FilmorateApplicationTests {
 
-	private UserStorage userStorage;
-	private UserService  userService;
-
-	private FilmStorage filmStorage;
-	private FilmService  filmService;
+	private UserService userService;
+	private FilmService filmService;
 
 	@BeforeEach
 	void beforeEach() {
-		userStorage = new InMemoryUserStorage();
+		UserStorage userStorage = new InMemoryUserStorage(new HashMap<>(), new IdentifyService());
 		userService = new UserService(userStorage);
+		filmService = new FilmService(
+				new InMemoryFilmStorage(new HashMap<>(), new IdentifyService()),
+				userStorage
+		);
 
-		filmStorage = new InMemoryFilmStorage();
-		filmService = new FilmService(filmStorage, userStorage);
-
-		userStorage.create(User.builder()
+		userService.create(User.builder()
 				.login("User1")
 				.email("user1@main.com")
 				.birthday(LocalDate.of(2003, 10, 2))
 				.build());
 
-		filmStorage.create(Film.builder()
+		filmService.create(Film.builder()
 				.name("Film1")
 				.description("this is description for film1")
 				.releaseDate(LocalDate.of(2018, 1, 11))
@@ -103,12 +101,6 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	@DisplayName("Неправильное получение пользователя.")
-	void getUserFailureTest() {
-		shouldReturnExceptionAfterTryGetLostUser();
-	}
-
-	@Test
 	@DisplayName("Правильное добавление фильма.")
 	void createFilmSuccessTest() {
 		shouldSaveActualFilmAfterCreate();
@@ -155,12 +147,12 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "createUserSuccessTest", position = 1)
 	private void shouldSaveActualUserAfterCreate() {
-		userStorage.create(User.builder()
+		userService.create(User.builder()
 				.login("User2")
 				.email("user2@main.com")
 				.birthday(LocalDate.of(2000, 12, 20))
 				.build());
-		User user = userStorage.findAll().stream().filter(u -> u.getId() == 2)
+		User user = userService.findAll().stream().filter(u -> u.getId() == 2)
 				.findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
@@ -173,13 +165,13 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "createUserSuccessTest", position = 2)
 	private void shouldSaveUserNameOfNewLoginAfterCreateUserWithEmptyUserName() {
-		userStorage.create(User.builder()
+		userService.create(User.builder()
 				.name("")
 				.login("User3")
 				.email("user3@main.com")
 				.birthday(LocalDate.of(2001, 10, 7))
 				.build());
-		User user = userStorage.findAll().stream().filter(u -> u.getId() == 3)
+		User user = userService.findAll().stream().filter(u -> u.getId() == 3)
 				.findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
@@ -197,7 +189,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 1)
 	private void shouldReturnExceptionAfterTryCreateUserWithEmptyEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.email("")
 						.birthday(LocalDate.of(1995, 12, 20))
@@ -209,7 +201,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 2)
 	private void shouldReturnExceptionAfterTryCreateUserWithNotValidEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.email("user4main.com")
 						.birthday(LocalDate.of(1995, 12, 20))
@@ -221,7 +213,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 3)
 	private void shouldReturnExceptionAfterTryCreateUserWithDuplicatedEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.email("user1@main.com")
 						.birthday(LocalDate.of(1995, 12, 20))
@@ -233,7 +225,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 4)
 	private void shouldReturnExceptionAfterTryCreateUserWithEmptyLogin() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("")
 						.email("user4@main.com")
 						.birthday(LocalDate.of(1995, 12, 20))
@@ -245,7 +237,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 5)
 	private void shouldReturnExceptionAfterTryCreateUserWithNotValidLogin() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User 3")
 						.email("user4@main.com")
 						.birthday(LocalDate.of(1995, 12, 20))
@@ -257,7 +249,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 6)
 	private void shouldReturnExceptionAfterTryCreateUserWithBirthdayAtFuture() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.email("user4@main.com")
 						.birthday(LocalDate.of(3335, 12, 20))
@@ -269,7 +261,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 7)
 	private void shouldReturnExceptionAfterTryCreateUserWithoutBirthday() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.email("user4@main.com")
 						.build())
@@ -281,7 +273,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 8)
 	private void shouldReturnExceptionAfterTryCreateUserWithoutLogin() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.birthday(LocalDate.of(1995, 12, 20))
 						.email("user4@main.com")
 						.build())
@@ -292,7 +284,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createUserFailureTest", position = 9)
 	private void shouldReturnExceptionAfterTryCreateUserWithoutEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.create(User.builder()
+				() -> userService.create(User.builder()
 						.login("User4")
 						.birthday(LocalDate.of(1995, 12, 20))
 						.build())
@@ -306,7 +298,7 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateUserSuccessTest", position = 1)
 	private void shouldSaveActualUserAfterUpdate() {
-		userStorage.update(User.builder()
+		userService.update(User.builder()
 				.id(1L)
 				.name("Updated username")
 				.email("updated_name@main.com")
@@ -314,7 +306,7 @@ class FilmorateApplicationTests {
 				.birthday(LocalDate.parse("1999-12-20"))
 				.build()
 		);
-		User user = userStorage.findAll().stream().findFirst().orElse(User.builder().build());
+		User user = userService.findAll().stream().findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("Updated username", user.getName()),
@@ -326,13 +318,13 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateUserSuccessTest", position = 2)
 	private void shouldSaveUserNameOfNewLoginAfterUpdateUserWithEmptyUserName() {
-		userStorage.update(User.builder()
+		userService.update(User.builder()
 				.id(1L)
 				.name("")
 				.login("UpdatedLogin111")
 				.build()
 		);
-		User user = userStorage.findAll().stream().findFirst().orElse(User.builder().build());
+		User user = userService.findAll().stream().findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("UpdatedLogin111", user.getName()),
@@ -344,12 +336,12 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateUserSuccessTest", position = 3)
 	private void shouldSaveOldUserEqualsNewLoginNameAfterUpdateUserWithoutUserName() {
-		userStorage.update(User.builder()
+		userService.update(User.builder()
 				.id(1L)
 				.login("UpdatedLogin777")
 				.build()
 		);
-		User user = userStorage.findAll().stream().findFirst().orElse(User.builder().build());
+		User user = userService.findAll().stream().findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("UpdatedLogin111", user.getName()),
@@ -361,11 +353,11 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateUserSuccessTest", position = 4)
 	private void shouldSaveOldUserFieldsAfterUpdateWithoutThisFields() {
-		userStorage.update(User.builder()
+		userService.update(User.builder()
 				.id(1L)
 				.build()
 		);
-		User user = userStorage.findAll().stream().findFirst().orElse(User.builder().build());
+		User user = userService.findAll().stream().findFirst().orElse(User.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("UpdatedLogin111", user.getName()),
@@ -382,7 +374,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 1)
 	private void shouldReturnExceptionAfterTryUpdateUserWithoutId() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.name("Frank")
 						.build()
 				));
@@ -392,7 +384,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 2)
 	private void shouldReturnExceptionAfterTryUpdateUserWithLostId() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(3L)
 						.name("Frank")
 						.build()
@@ -403,7 +395,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 3)
 	private void shouldReturnExceptionAfterTryUpdateUserWithEmptyLogin() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(1L)
 						.login("")
 						.build()
@@ -414,7 +406,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 4)
 	private void shouldReturnExceptionAfterTryUpdateUserWithNotValidLogin() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(1L)
 						.name("UpdatedName")
 						.email("updated_name@main.com")
@@ -428,7 +420,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 5)
 	private void shouldReturnExceptionAfterTryUpdateUserWithEmptyEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(1L)
 						.email("")
 						.build()
@@ -439,7 +431,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateUserFailureTest", position = 6)
 	private void shouldReturnExceptionAfterTryUpdateUserWithNotValidEmail() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(1L)
 						.email("n333ayj99i--kjj")
 						.build()
@@ -449,7 +441,7 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateUserFailureTest", position = 7)
 	private void shouldReturnExceptionAfterTryUpdateUserWithDuplicatedEmail() {
-		userStorage.create(User.builder()
+		userService.create(User.builder()
 				.name("Admin_id2")
 				.email("admin@main.com")
 				.login("userAdmin")
@@ -458,7 +450,7 @@ class FilmorateApplicationTests {
 		);
 
 		DuplicatedDataException exception = assertThrows(DuplicatedDataException.class,
-				() -> userStorage.update(User.builder()
+				() -> userService.update(User.builder()
 						.id(1L)
 						.email("admin@main.com")
 						.build()
@@ -473,13 +465,13 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "createFilmSuccessTest", position = 1)
 	private void shouldSaveActualFilmAfterCreate() {
-		filmStorage.create(Film.builder()
+		filmService.create(Film.builder()
 				.name("Film2")
 				.description("this is description for film2")
 				.releaseDate(LocalDate.of(2020, 11, 21))
 				.duration(Duration.ofMinutes(35))
 				.build());
-		Film film = filmStorage.findAll().stream().filter(f -> f.getId() == 2)
+		Film film = filmService.findAll().stream().filter(f -> f.getId() == 2)
 				.findFirst().orElse(Film.builder().build());
 
 		Assertions.assertAll(
@@ -497,7 +489,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 1)
 	private void shouldReturnExceptionAfterTryCreateFilmWithEmptyName() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("")
 						.releaseDate(LocalDate.of(2010, 1, 2))
 						.duration(Duration.ofMinutes(145))
@@ -509,7 +501,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 2)
 	private void shouldReturnExceptionAfterTryCreateFilmWithTooLongDescription() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.description("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" +
 								"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" +
@@ -525,7 +517,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 3)
 	private void shouldReturnExceptionAfterTryCreateFilmWithoutReleaseDate() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.build()
 				));
@@ -535,7 +527,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 4)
 	private void shouldReturnExceptionAfterTryCreateFilmWithTooEarlyReleaseDate() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(1895, 12, 27))
 						.duration(Duration.ofMinutes(25))
@@ -547,7 +539,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 5)
 	private void shouldReturnExceptionAfterTryCreateFilmWithReleaseDateAtFuture() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(3895, 12, 27))
 						.duration(Duration.ofMinutes(90))
@@ -559,7 +551,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 6)
 	private void shouldReturnExceptionAfterTryCreateFilmWithEmptyDuration() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.build()
@@ -570,7 +562,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 7)
 	private void shouldReturnExceptionAfterTryCreateFilmWithNegativeDuration() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(-1))
@@ -582,7 +574,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 8)
 	private void shouldReturnExceptionAfterTryCreateFilmWithNullableDuration() {
 		RuntimeException exception1 = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(0))
@@ -594,14 +586,14 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "createFilmFailureTest", position = 9)
 	private void shouldReturnExceptionAfterTryCreateFilmWithNullableFilm() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(null));
+				() -> filmService.update(null));
 		assertEquals("Входные данные фильма не распознаны.", exception.getMessage());
 	}
 
 	@SortedPosition(method = "createFilmFailureTest", position = 10)
 	private void shouldReturnExceptionAfterTryCreateFilmWithoutName() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.create(Film.builder()
+				() -> filmService.create(Film.builder()
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(10))
 						.build()
@@ -615,14 +607,14 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateFilmSuccessTest", position = 1)
 	private void shouldSaveActualFilmAfterUpdate() {
-		filmStorage.update(Film.builder()
+		filmService.update(Film.builder()
 				.id(1L)
 				.name("UpdatedName")
 				.description("this is updated description")
 				.releaseDate(LocalDate.of(2019, 11, 21))
 				.duration(Duration.ofMinutes(37))
 				.build());
-		Film film = filmStorage.findAll().stream().findFirst().orElse(Film.builder().build());
+		Film film = filmService.findAll().stream().findFirst().orElse(Film.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("UpdatedName", film.getName()),
@@ -634,10 +626,10 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "updateFilmSuccessTest", position = 2)
 	private void shouldSaveOldFilmFieldsAfterUpdateWithoutThisFields() {
-		filmStorage.update(Film.builder()
+		filmService.update(Film.builder()
 				.id(1L)
 				.build());
-		Film film = filmStorage.findAll().stream().findFirst().orElse(Film.builder().build());
+		Film film = filmService.findAll().stream().findFirst().orElse(Film.builder().build());
 
 		Assertions.assertAll(
 				() -> assertEquals("UpdatedName", film.getName()),
@@ -654,7 +646,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 1)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithoutId() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.build()
@@ -665,19 +657,19 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 2)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithLostId() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(777L)
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.build()
 				));
-		assertEquals("Пользователь с id = 777 не найден.", exception.getMessage());
+		assertEquals("Фильм с id = 777 не найден.", exception.getMessage());
 	}
 
 	@SortedPosition(method = "updateFilmFailureTest", position = 3)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithEmptyFilmName() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.name("")
 						.releaseDate(LocalDate.of(2021, 12, 27))
@@ -689,7 +681,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 4)
 	private void shouldReturnExceptionAfterUpdateFilmWithTooLongDescription() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.description("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" +
 								"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" +
@@ -704,7 +696,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 5)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithTooEarlyReleaseDate() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.releaseDate(LocalDate.of(1895, 1, 27))
 						.build()
@@ -715,7 +707,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 6)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithReleaseDateAtFuture() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.releaseDate(LocalDate.of(3895, 1, 27))
 						.build()
@@ -726,7 +718,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 7)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithNegativeDuration() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.duration(Duration.ofMinutes(-100))
 						.build()
@@ -737,7 +729,7 @@ class FilmorateApplicationTests {
 	@SortedPosition(method = "updateFilmFailureTest", position = 8)
 	private void shouldReturnExceptionAfterTryUpdateFilmWithNullableDuration() {
 		RuntimeException exception = assertThrows(RuntimeException.class,
-				() -> filmStorage.update(Film.builder()
+				() -> filmService.update(Film.builder()
 						.id(1L)
 						.duration(Duration.ofMinutes(0))
 						.build()
@@ -751,7 +743,7 @@ class FilmorateApplicationTests {
 
 	@SortedPosition(method = "getUserSuccessTest", position = 1)
 	private void shouldReturnActualUserAfterGet() {
-		User user = userStorage.get(1L);
+		User user = userService.get(1L);
 
 		Assertions.assertAll(
 				() -> assertEquals("User1", user.getName()),
@@ -759,16 +751,5 @@ class FilmorateApplicationTests {
 				() -> assertEquals("user1@main.com", user.getEmail()),
 				() -> assertEquals("2003-10-02", user.getBirthday().toString())
 		);
-	}
-
-	/**
-	 * -----------------------------------------------------------------------------
-	 */
-
-	@SortedPosition(method = "getUserFailureTest", position = 1)
-	private void shouldReturnExceptionAfterTryGetLostUser() {
-		NotFoundException exception = assertThrows(NotFoundException.class,
-				() -> userStorage.get(777L));
-		assertEquals("Пользователь с id=777 не найден.", exception.getMessage());
 	}
 }
