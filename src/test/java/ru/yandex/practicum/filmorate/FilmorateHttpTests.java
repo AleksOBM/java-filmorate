@@ -301,12 +301,14 @@ class FilmorateHttpTests {
 	void filmCreate() throws Exception {
 		mockMvc.perform(post("/films")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\n" +
-						         "  \"name\": \"Матрица\",\n" +
-						         "  \"description\": \"Добро пожаловать в реальный мир\",\n" +
-						         "  \"releaseDate\": \"1999-03-24\",\n" +
-						         "  \"duration\": 136,\n" +
-						         "  \"likes\": null\n" +
+						.content("   {\n" +
+						         "    \"name\": \"Матрица\",\n" +
+						         "    \"description\": \"Добро пожаловать в реальный мир\",\n" +
+						         "    \"releaseDate\": \"1999-03-24\",\n" +
+						         "    \"duration\": 136,\n" +
+						         "    \"genres\": [\"drama\", \"comedy\"],\n" +
+						         "    \"age\": \"PG-13\",\n" +
+						         "    \"likes\": null\n" +
 						         "}"
 						))
 				.andExpect(status().isCreated())
@@ -357,12 +359,14 @@ class FilmorateHttpTests {
 		mockMvc.perform(post("/films")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("{\n" +
-						         "  \"name\": \"Остров проклятых\",\n" +
-						         "  \"description\": \"Некоторые места никогда не отпускают тебя\",\n" +
-						         "  \"releaseDate\": \"2010-02-13\",\n" +
-						         "  \"duration\": 138,\n" +
-						         "  \"rate\": 4\n" +
-						         "}"
+						         "    \"name\": \"Остров проклятых\",\n" +
+						         "    \"description\": \"Некоторые места никогда не отпускают тебя\",\n" +
+						         "    \"releaseDate\": \"2010-02-13\",\n" +
+						         "    \"duration\": 138,\n" +
+						         "    \"genres\": [\"drama\", \"comedy\"],\n" +
+						         "    \"age\": \"NC-17\",\n" +
+						         "    \"rate\": 4\n" +
+						         "}\n"
 						))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.name").value("Остров проклятых"))

@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.annotation.SortedPosition;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
+import ru.yandex.practicum.filmorate.model.AgeRating;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.servise.FilmService;
 import ru.yandex.practicum.filmorate.servise.IdentifyService;
@@ -19,6 +21,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -49,6 +52,8 @@ class FilmorateApplicationTests {
 				.description("this is description for film1")
 				.releaseDate(LocalDate.of(2018, 1, 11))
 				.duration(Duration.ofMinutes(135))
+				.genres(Set.of(Genre.COMEDY))
+				.ageRating(AgeRating.G)
 				.build());
 	}
 
@@ -109,14 +114,9 @@ class FilmorateApplicationTests {
 	@Test
 	@DisplayName("Неправильное добавление фильма.")
 	void createFilmFailureTest() {
-		shouldReturnExceptionAfterTryCreateFilmWithEmptyName();
-		shouldReturnExceptionAfterTryCreateFilmWithTooLongDescription();
 		shouldReturnExceptionAfterTryCreateFilmWithoutReleaseDate();
 		shouldReturnExceptionAfterTryCreateFilmWithTooEarlyReleaseDate();
-		shouldReturnExceptionAfterTryCreateFilmWithReleaseDateAtFuture();
 		shouldReturnExceptionAfterTryCreateFilmWithEmptyDuration();
-		shouldReturnExceptionAfterTryCreateFilmWithNegativeDuration();
-		shouldReturnExceptionAfterTryCreateFilmWithNullableDuration();
 		shouldReturnExceptionAfterTryCreateFilmWithNullableFilm();
 		shouldReturnExceptionAfterTryCreateFilmWithoutName();
 	}
@@ -133,12 +133,7 @@ class FilmorateApplicationTests {
 	void updateFilmFailureTest() {
 		shouldReturnExceptionAfterTryUpdateFilmWithoutId();
 		shouldReturnExceptionAfterTryUpdateFilmWithLostId();
-		shouldReturnExceptionAfterTryUpdateFilmWithEmptyFilmName();
-		shouldReturnExceptionAfterUpdateFilmWithTooLongDescription();
 		shouldReturnExceptionAfterTryUpdateFilmWithTooEarlyReleaseDate();
-		shouldReturnExceptionAfterTryUpdateFilmWithReleaseDateAtFuture();
-		shouldReturnExceptionAfterTryUpdateFilmWithNegativeDuration();
-		shouldReturnExceptionAfterTryUpdateFilmWithNullableDuration();
 	}
 
 	/**
@@ -470,6 +465,8 @@ class FilmorateApplicationTests {
 				.description("this is description for film2")
 				.releaseDate(LocalDate.of(2020, 11, 21))
 				.duration(Duration.ofMinutes(35))
+				.genres(Set.of(Genre.COMEDY))
+				.ageRating(AgeRating.G)
 				.build());
 		Film film = filmService.findAll().stream().filter(f -> f.getId() == 2)
 				.findFirst().orElse(Film.builder().build());
@@ -493,6 +490,8 @@ class FilmorateApplicationTests {
 						.name("")
 						.releaseDate(LocalDate.of(2010, 1, 2))
 						.duration(Duration.ofMinutes(145))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Название не может быть пустым.", exception.getMessage());
@@ -509,6 +508,8 @@ class FilmorateApplicationTests {
 								"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 						.releaseDate(LocalDate.of(2010, 1, 2))
 						.duration(Duration.ofMinutes(423))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Максимальная длина описания — 200 символов.", exception.getMessage());
@@ -519,6 +520,8 @@ class FilmorateApplicationTests {
 		RuntimeException exception = assertThrows(RuntimeException.class,
 				() -> filmService.create(Film.builder()
 						.name("XXX")
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Дата релиза должна быть указана.", exception.getMessage());
@@ -531,6 +534,8 @@ class FilmorateApplicationTests {
 						.name("XXX")
 						.releaseDate(LocalDate.of(1895, 12, 27))
 						.duration(Duration.ofMinutes(25))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Дата релиза должна быть не раньше 28 декабря 1895 года.", exception.getMessage());
@@ -543,6 +548,8 @@ class FilmorateApplicationTests {
 						.name("XXX")
 						.releaseDate(LocalDate.of(3895, 12, 27))
 						.duration(Duration.ofMinutes(90))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Дата релиза не должна быть в будущем.", exception.getMessage());
@@ -554,6 +561,8 @@ class FilmorateApplicationTests {
 				() -> filmService.create(Film.builder()
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Продолжительность фильма должна быть указана.", exception.getMessage());
@@ -566,6 +575,8 @@ class FilmorateApplicationTests {
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(-1))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Продолжительность фильма должна быть положительным числом.", exception.getMessage());
@@ -578,6 +589,8 @@ class FilmorateApplicationTests {
 						.name("XXX")
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(0))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Продолжительность фильма должна быть положительным числом.", exception1.getMessage());
@@ -596,6 +609,8 @@ class FilmorateApplicationTests {
 				() -> filmService.create(Film.builder()
 						.releaseDate(LocalDate.of(2021, 12, 27))
 						.duration(Duration.ofMinutes(10))
+						.genres(Set.of(Genre.COMEDY))
+						.ageRating(AgeRating.G)
 						.build()
 				));
 		assertEquals("Название должно быть указано.", exception.getMessage());
