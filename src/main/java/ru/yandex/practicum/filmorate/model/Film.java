@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.validation.constraints.Past;
@@ -34,7 +31,6 @@ public class Film {
 	private String description;
 
 	@Past(message = "Дата релиза должна быть в прошлом.")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private LocalDate releaseDate;
 
 	@JsonSerialize(using = DurationSerializer.class)
@@ -42,16 +38,14 @@ public class Film {
 	@DurationMin(minutes = 0, message = "Продолжительность фильма должна быть положительным числом.")
 	private Duration duration;
 
-	@JsonSetter(nulls = Nulls.AS_EMPTY)
 	@Builder.Default
 	private Set<Genre> genres = new HashSet<>();
 
 	@JsonProperty(value = "age")
 	private AgeRating ageRating;
 
-	@JsonProperty(value = "likes")
-	@JsonSetter(nulls = Nulls.AS_EMPTY)
 	@Builder.Default
+	@JsonProperty(value = "likes")
 	private Set<Long> whoLiked = new HashSet<>();
 
 	@JsonProperty(value = "rate")

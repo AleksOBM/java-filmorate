@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.servise;
 
 public enum FriendsAction {
-	ADD,
-    REMOVE
+	REQUEST, // GET
+	APPROVE, // POST
+	REJECT, // PUT
+	REMOVE // DELETE
 }

@@ -34,6 +34,18 @@ public class ErrorHandler {
 		return new ErrorResponse(e.getMessage());
 	}
 
+	@ResponseStatus(HttpStatus.ALREADY_REPORTED)
+	@ExceptionHandler
+	public ErrorResponse handleAlredtAccepted(final AlredyAcceptedException e) {
+		return new ErrorResponse(e.getMessage());
+	}
+
+	@ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+	@ExceptionHandler
+	public ErrorResponse handleNotAlloWed(final NotAllowedException e) {
+		return new ErrorResponse(e.getMessage());
+	}
+
 	@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
 	@ExceptionHandler
 	public ErrorResponse handleConditionsNotMet(final ConditionsNotMetException e) {

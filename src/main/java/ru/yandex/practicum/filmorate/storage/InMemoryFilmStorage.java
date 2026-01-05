@@ -18,7 +18,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
 	@Override
 	public Optional<Film> get(Long id) {
-		return films.values().stream().filter(f -> f.getId().equals(id)).findFirst();
+		return films.values().stream()
+				.filter(f -> f.getId().equals(id)).findFirst();
 	}
 
 	@Override
