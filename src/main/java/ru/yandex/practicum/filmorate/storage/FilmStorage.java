@@ -22,5 +22,6 @@ public interface FilmStorage {
 	/// Получение id всех Фильмов
 	Collection<Long> getFilmIds();
 
+	/// Сброс данных
 	void reset();
 }

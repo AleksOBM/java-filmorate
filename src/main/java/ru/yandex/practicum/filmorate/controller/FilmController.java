@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -27,18 +29,20 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getTop(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> getTop(
+            @Positive(message = "Топ фильмов должен быть положительным числом.")
+            @RequestParam(defaultValue = "10") Integer count) {
         return filmService.getTopFilms(count);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film create(@RequestBody Film film) {
+    public Film create(@RequestBody @Valid Film film) {
         return filmService.create(film);
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) {
+    public Film update(@RequestBody @Valid Film film) {
         return filmService.update(film);
     }
 

@@ -22,5 +22,6 @@ public interface UserStorage {
 	/// Получение id всех пользователей
 	Collection<Long> getUserIds();
 
+	/// Сброс данных
 	void reset();
 }

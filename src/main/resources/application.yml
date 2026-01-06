@@ -1,11 +1,6 @@
 server:
   port: 8080
 
-spring:
-  main:
-    ansi:
-      enabled: ALWAYS
-
 logging:
   level:
     root: INFO
