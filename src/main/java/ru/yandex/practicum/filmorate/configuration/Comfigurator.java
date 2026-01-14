@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.adapters.*;
 import java.time.Duration;
 
 @Configuration
-public class JacksonConfig {
+public class Comfigurator {
 
 	@Bean
 	public ObjectMapper objectMapper() {
