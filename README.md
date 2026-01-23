@@ -10,7 +10,7 @@ The Filmorate project.
 ```sql
 SELECT f.film_name,
        sum(l.user_id) AS rate
-FROM film f
+FROM films f
          JOIN likes l ON f.id = l.film_id
 GROUP BY f.film_name
 ORDER BY rate DESC
@@ -24,27 +24,27 @@ ORDER BY rate DESC
 SELECT f.film_name,
        f.release_date,
        f.duration
-FROM "film" f
+FROM films f
 WHERE f.id IN
       (SELECT l.film_id
-       FROM "likes" l
+       FROM likes l
        WHERE l.user_id IN
              (SELECT friend_id
-              FROM "friends" fr
+              FROM friends fr
               WHERE fr.user_id IN (5, 6, 7)
-              )
-       )
+             )
+      )
   AND f.duration > 100
   AND f.id IN
       (SELECT fg.film_id
        FROM genres_of_films fg
        WHERE fg.genre_id IN
              (SELECT g.id
-              FROM genre g
-              WHERE g.genre_name 
-                    IN('adventure, "horror', 'action')
-              )
-       );
+              FROM genres g
+              WHERE g.genre_name
+                       IN('Боевик', 'Триллер', 'Комедия')
+             )
+      );
 ```
 
 
