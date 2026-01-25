@@ -76,8 +76,11 @@ public class FilmService {
 
 	public Collection<FilmDto> getTopFilms(Integer count) {
 		log.info("Получение топ {} фильмов.", count);
-		if (count < 0) {
-			throw new ParameterNotValidException(String.valueOf(count), "Топ фильмов не может быть меньше 0.");
+		if (count <= 0) {
+			throw new ParameterNotValidException(
+					String.valueOf(count),
+					"Топ фильмов должен быть положительным числом."
+			);
 		}
 		return filmStorage.getTop(count).stream()
 				.map(film -> FilmMapper.mapToFilmDto(

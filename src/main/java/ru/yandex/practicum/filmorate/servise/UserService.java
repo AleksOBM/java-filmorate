@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.servise.util.FriendsAction;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,30 +84,27 @@ public class UserService {
 
 	public UserDto update(UserUpdateRequest request) {
 		log.info("Обновление данных о пользователе с id={}.", request.getId());
-
-		User oldUser = userStorage.findById(request.getId())
-				.orElseThrow(() -> new NotFoundException("Пользователь не найден, обновлять нечего."));
-
+		User oldUser = findUser(request.getId());
 		logUserUpdate(request, oldUser);
 		User newUser = UserMapper.updateUserFields(oldUser, request);
 
 		try {
 			newUser = userStorage.updateUser(newUser);
 		} catch (DuplicateKeyException e) {
-			throw new DuplicatedDataException("Эта электронная почта " + newUser.getEmail() + " уже используется.");
+			throw new DuplicatedDataException(
+					"Эта электронная почта " + newUser.getEmail() + " уже используется."
+			);
 		}
 
 		return UserMapper.mapToUserDto(newUser);
 	}
 
-	public UserDto findById(long userId) {
+	public UserDto findUserDtoById(long userId) {
 		log.info("Поиск пользователя с id={}.", userId);
-		return userStorage.findById(userId)
-				.map(UserMapper::mapToUserDto)
-				.orElseThrow(() -> new NotFoundException("Пользователь не найден с ID: " + userId));
+		return UserMapper.mapToUserDto(findUser(userId));
 	}
 
-	public Collection<UserDto> findAll() {
+	public Collection<UserDto> findAllUserDto() {
 		log.info("Поиск всех пользователей.");
 		return userStorage.findAll()
 				.stream()
@@ -118,38 +114,31 @@ public class UserService {
 
 	public Collection<UserDto> getListOfFriends(long userId) {
 		log.info("Получение списка друзей пользователя id={}.", userId);
+		easyCheckUser(userId);
 
-		User user = userStorage.findById(userId).orElseThrow(() ->
-				new NotFoundException("Пользователь с id=" + userId + " не найден.")
-		);
-
-		return user.getFriendsIds().stream()
-				.sorted(Long::compareTo)
-				.map(userStorage::findById)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+		return userStorage.findFriendsOfUser(userId).stream()
 				.map(UserMapper::mapToUserDto)
 				.toList();
 	}
 
 	public Collection<UserDto> getListOfMutualFriends(long userId, long friendId) {
 		log.info("Получение списка общих друзей у пользователей id={} и id={}.", userId, friendId);
-
 		validateTwoUsers(userId, friendId);
-		Collection<Long> friendsOfUser = userStorage.getFriendIds(userId);
-		Collection<Long> riendsOfFriend = userStorage.getFriendIds(friendId);
 
-		Collection<Long> mutualFriendTds = friendsOfUser.stream()
-				.filter(riendsOfFriend::contains)
-				.toList();
-
-		return mutualFriendTds.stream()
-				.sorted(Long::compareTo)
-				.map(userStorage::findById)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
+		return userStorage.findMutualFriends(userId, friendId).stream()
 				.map(UserMapper::mapToUserDto)
 				.toList();
+	}
+
+	private void easyCheckUser(long userId) {
+		if (userStorage.checkUserIsNotPresent(userId)) {
+			throw new NotFoundException("Первый пользователь с id=" + userId + " не найден.");
+		}
+	}
+
+	private User findUser(long userId) {
+		return userStorage.findById(userId)
+				.orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден."));
 	}
 
 	private void validateTwoUsers(long userId1, long userId2) {
@@ -157,13 +146,8 @@ public class UserService {
 			throw new ParameterNotValidException(String.valueOf(userId1), "У пользователей должны быть разные id.");
 		}
 
-		if (userStorage.checkUserIsNotPresent(userId1)) {
-			throw new NotFoundException("Первый пользователь с id=" + userId1 + " не найден.");
-		}
-
-		if (userStorage.checkUserIsNotPresent(userId2)) {
-			throw new NotFoundException("Второй пользователь с id=" + userId2 + " не найден.");
-		}
+		easyCheckUser(userId1);
+		easyCheckUser(userId2);
 	}
 
 	private void logUserUpdate(UserUpdateRequest request, User user) {

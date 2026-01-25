@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -27,8 +25,8 @@ public class FilmDto {
 	int likesCount;
 
 	@Builder.Default
-	private Mpa mpa = Mpa.builder().build();
+	private MpaDto mpa = new MpaDto();
 
 	@Builder.Default
-	private Collection<Genre> genres = new ArrayList<>();
+	private Collection<GenreDto> genres = new ArrayList<>();
 }

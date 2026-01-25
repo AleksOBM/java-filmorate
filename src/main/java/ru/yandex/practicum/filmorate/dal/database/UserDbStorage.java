@@ -64,30 +64,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
 	@Override
 	public Collection<User> findAll() {
-		return jdbc.query(SQL_USERS_FIND_ALL_USERS_AND_FRIENDS, rs -> {
-			Map<Long, User> users = new LinkedHashMap<>();
-			AtomicInteger rowNum = new AtomicInteger();
-			while (rs.next()) {
-				long userId = rs.getLong("user_id");
-				User user = users.computeIfAbsent(userId, id -> {
-
-					try {
-						return rowMapper.mapRow(rs, rowNum.getAndIncrement());
-					} catch (SQLException e) {
-						throw new InternalServerException(
-								"Не удалось получить всех пользователей из базы.\n" + e.getMessage()
-						);
-					}
-				});
-
-				long friendId = rs.getLong("friend_id");
-				if (!rs.wasNull() && user != null) {
-					user.addFriendId(friendId);
-				}
-			}
-
-			return new ArrayList<>(users.values());
-		});
+		return findManyUsers(SQL_USERS_FIND_ALL_USERS_AND_FRIENDS);
 	}
 
 	@Override
@@ -105,6 +82,16 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 	}
 
 	@Override
+	public Collection<User> findFriendsOfUser(long userId) {
+		return findManyUsers(SQL_USERS_FIND_ALL_FRIENDS_BY_USER_ID, userId);
+	}
+
+	@Override
+	public Collection<User> findMutualFriends(long userId, long friendId) {
+		return findManyUsers(SQL_USERS_FIND_MUTUAL_FRIENDS, userId, friendId);
+	}
+
+	@Override
 	public Set<Long> getFriendIds(long userId) {
 		String sql = "SELECT friend_id FROM friends WHERE user_id = ?";
 		return findColumnByQuery(sql, Long.class, userId);
@@ -113,6 +100,32 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 	@Override
 	public boolean checkUserIsNotPresent(Long userId) {
 		return checkIdIsNotPresentInTable(userId, "users");
+	}
+
+	private Collection<User> findManyUsers(String sql, Object... params) {
+		return jdbc.query(sql, rs -> {
+			Map<Long, User> users = new LinkedHashMap<>();
+			AtomicInteger rowNum = new AtomicInteger();
+			while (rs.next()) {
+				long userId = rs.getLong("id");
+				User user = users.computeIfAbsent(userId, id -> {
+
+					try {
+						return rowMapper.mapRow(rs, rowNum.getAndIncrement());
+					} catch (SQLException e) {
+						throw new InternalServerException(
+								"Не удалось получить пользователей из базы.\n" + e.getMessage()
+						);
+					}
+				});
+
+				long friendId = rs.getLong("friend_id");
+				if (!rs.wasNull() && user != null) {
+					user.addFriendId(friendId);
+				}
+			}
+			return new ArrayList<>(users.values());
+		}, params);
 	}
 
 }

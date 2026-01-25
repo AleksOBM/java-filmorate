@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.dto.request.create.FilmCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -37,8 +39,11 @@ public final class FilmMapper {
 				.releaseDate(film.getReleaseDate())
 				.duration(film.getDuration())
 				.likesCount(film.getLikesCount())
-				.mpa(mpa)
-				.genres(genres.stream().sorted(Comparator.comparing(Genre::getId)).toList())
+				.mpa(new MpaDto(mpa.getId(), mpa.getName()))
+				.genres(genres.stream()
+						.sorted(Comparator.comparing(Genre::getId))
+						.map(genre -> new GenreDto(genre.getId(), genre.getName()))
+						.toList())
 				.build();
 	}
 

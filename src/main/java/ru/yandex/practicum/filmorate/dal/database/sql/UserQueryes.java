@@ -28,14 +28,41 @@ public class UserQueryes {
 			""";
 
 	public static final String SQL_USERS_FIND_ALL_USERS_AND_FRIENDS = """
-			SELECT    u.id         AS user_id,
-			          u.user_name  AS user_name,
-			          u.login      AS login,
-			          u.email      AS email,
-			          u.birthday   AS birthday,
-			          f.friend_id  AS friend_id
+			SELECT    u.*,
+			          f.friend_id
 			FROM      users u
 			LEFT JOIN friends f ON u.id = f.user_id
-			ORDER BY  user_id
+			ORDER BY  u.id;
+			""";
+
+	public static final String SQL_USERS_FIND_ALL_FRIENDS_BY_USER_ID = """
+			SELECT    u.*,
+			          f.FRIEND_ID
+			FROM      USERS u
+			LEFT JOIN FRIENDS f ON u.ID = f.USER_ID
+			WHERE     u.ID IN (
+			          SELECT    fr.friend_id
+			          FROM      friends fr
+			          WHERE     fr.user_id = ?
+			          )
+			ORDER BY  u.id
+			""";
+
+	public static final String SQL_USERS_FIND_MUTUAL_FRIENDS = """
+			SELECT    u.*,
+			          f.FRIEND_ID
+			FROM      USERS u
+			LEFT JOIN FRIENDS f ON u.ID = f.USER_ID
+			WHERE     u.ID IN (
+			          SELECT    fr.FRIEND_ID
+			          FROM      friends fr
+			          WHERE     fr.user_id IN (?)
+			          AND       fr.FRIEND_ID IN (
+			                    SELECT    fr1.FRIEND_ID
+			                    FROM      friends fr1
+			                    WHERE     fr1.user_id IN (?)
+			                    )
+			          )
+			ORDER BY  u.id;
 			""";
 }

@@ -59,6 +59,16 @@ public class InMemoryUserStorage implements UserStorage {
 	}
 
 	@Override
+	public Collection<User> findFriendsOfUser(long userId) {
+		throw new MethodNotImplementedException();
+	}
+
+	@Override
+	public Collection<User> findMutualFriends(long userId, long friendId) {
+		throw new MethodNotImplementedException();
+	}
+
+	@Override
 	public Collection<Long> getFriendIds(long userId) {
 		throw new MethodNotImplementedException();
 	}
