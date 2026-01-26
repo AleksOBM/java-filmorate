@@ -1,11 +1,33 @@
-# java-filmorate
-The Filmorate project.
-
-### Database map
+# java-filmorate (Java Filmorate)
+### Описание (Description)  
+The Filmorate project — это приложение для работы с базой данных фильмов.
+### Основные возможности
+- Хранение данных о фильмах
+- Хранение данных о пользователях
+- Возможность пользователям ставить лайки фильмам
+- Возможность пользователям добавлять друг друга в друзья
+- Возможность получать рейтинг TOP_N фильмов по количеству лайков
+- Фильмы содержат возрастные ограничения по стандарту MPPA
+- Реализована система жанров для фильмов
+### Требования (Environmental Requirements) 
+Для запуска проекта требуется: - Java версии 21 - Spring Boot версии 3.5.9
+### Установка и запуск (Installation and Running) 
+1. Убедитесь, что у вас установлена необходимая версия Java.  
+2. Откройте терминал в корне проекта и выполните команду `mvn spring-boot:run` для запуска приложения.
+### Примеры пользовательских запросов (Request Examples)
+![ExamplesOfRequests](ExamplesOfRequests.png)
+### Архитектура и структура проекта (Architecture and Project Structure) 
+Проект использует Spring Boot и включает в себя следующие основные зависимости:
+- spring-boot-starter-web 
+- spring-boot-starter-test 
+- spring-boot-starter-validation 
+- spring-boot-starter-jdbc 
+- h2database - lombok 
+- logback-classic 
+- logbook-spring-boot-starter
+### Схема базы данных (Database map)
 ![DatabaseMap](QuickDBD-FILMO_RATE.png "Database map:")
-
-### Database requests examples
-
+### Примеры запросов к базе данных:
 1. Get TOP-10 films:
 ```sql
 SELECT f.film_name,
