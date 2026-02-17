@@ -56,10 +56,10 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public Optional<Review> findReviewById(long id) {
-        Optional<Review> review = findOneByIdInTable(id, "reviews");
+    public Optional<Review> findReviewById(long reviewId) {
+        Optional<Review> review = findOneByIdInTable(reviewId, "reviews");
         if (review.isPresent()) {
-            review.get().setUserLikes(findAllReactionsByReviewId(id));
+            review.get().setUserLikes(findAllReactionsByReviewId(reviewId));
             return review;
         }
         return Optional.empty();
@@ -81,35 +81,35 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     @Transactional
-    public void addReviewLike(long id, long userId) {
-        updateWithControl(SQL_REVIEWS_ADD_LIKE, id, userId);
-        updateWithControl(SQL_REVIEWS_UPDATE_USEFUL, 1, id);
+    public void addReviewLike(long reviewId, long userId) {
+        updateWithControl(SQL_REVIEWS_ADD_LIKE, reviewId, userId);
+        updateWithControl(SQL_REVIEWS_CALCULATE_USEFUL, reviewId, reviewId);
     }
 
     @Override
     @Transactional
-    public void addReviewDislike(long id, long userId) {
-        updateWithControl(SQL_REVIEWS_ADD_DISLIKE, id, userId);
-        updateWithControl(SQL_REVIEWS_UPDATE_USEFUL, -1, id);
+    public void addReviewDislike(long reviewId, long userId) {
+        updateWithControl(SQL_REVIEWS_ADD_DISLIKE, reviewId, userId);
+        updateWithControl(SQL_REVIEWS_CALCULATE_USEFUL, reviewId, reviewId);
     }
 
     @Override
     @Transactional
-    public void removeReviewLike(long id, long userId) {
-        updateWithControl(SQL_REVIEWS_DELETE_LIKE, id, userId);
-        updateWithControl(SQL_REVIEWS_UPDATE_USEFUL, -1, id);
+    public void removeReviewLike(long reviewId, long userId) {
+        updateWithControl(SQL_REVIEWS_DELETE_LIKE, reviewId, userId);
+        updateWithControl(SQL_REVIEWS_CALCULATE_USEFUL, reviewId, reviewId);
     }
 
     @Override
     @Transactional
-    public void removeReviewDislike(long id, long userId) {
-        updateWithControl(SQL_REVIEWS_DELETE_DISLIKE, id, userId);
-        updateWithControl(SQL_REVIEWS_UPDATE_USEFUL, 1, id);
+    public void removeReviewDislike(long reviewId, long userId) {
+        updateWithControl(SQL_REVIEWS_DELETE_DISLIKE, reviewId, userId);
+        updateWithControl(SQL_REVIEWS_CALCULATE_USEFUL, reviewId, reviewId);
     }
 
     @Override
-    public boolean checkReviewIsNotPresent(long id){
-        return checkIdIsNotPresentInTable(id, "reviews");
+    public boolean checkReviewIsNotPresent(long reviewId){
+        return checkIdIsNotPresentInTable(reviewId, "reviews");
     }
 
     public Optional<Boolean> getReactionsStatus(long reviewId, long userId) {

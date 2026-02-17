@@ -17,9 +17,6 @@ public class ReviewQueries {
     public static final String SQL_REVIEWS_FIND_BY_FILM_ID =
             "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?";
 
-    public static final String SQL_REVIEWS_UPDATE_USEFUL =
-            "UPDATE reviews SET useful = useful + ? WHERE id = ?";
-
     public static final String SQL_REVIEWS_ADD_LIKE =
             "INSERT INTO review_likes (review_id, user_id, is_like) VALUES (?, ?, TRUE)";
 
@@ -37,4 +34,12 @@ public class ReviewQueries {
 
     public static final String SQL_REVIEWS_GET_LIKES_BY_REVIEW_ID =
             "SELECT user_id, is_like FROM review_likes WHERE review_id = ?";
+
+    public static final String SQL_REVIEWS_CALCULATE_USEFUL = """
+                    UPDATE reviews SET useful = (
+                        SELECT COALESCE(SUM(CASE WHEN is_like = TRUE THEN 1 ELSE -1 END), 0)
+                        FROM review_likes
+                        WHERE review_id = ?
+                    ) WHERE id = ?
+                    """;
 }
