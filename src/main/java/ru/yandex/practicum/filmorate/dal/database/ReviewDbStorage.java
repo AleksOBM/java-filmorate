@@ -57,7 +57,12 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Optional<Review> findReviewById(long id) {
-        return findOneByIdInTable(id, "reviews");
+        Optional<Review> review = findOneByIdInTable(id, "reviews");
+        if (review.isPresent()) {
+            review.get().setUserLikes(findAllReactionsByReviewId(id));
+            return review;
+        }
+        return Optional.empty();
     }
 
     @Override

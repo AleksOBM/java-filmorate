@@ -71,12 +71,4 @@ public class BaseDbStorage<T> {
         return jdbc.query(query, rowMapper, params);
     }
 
-    protected Optional<T> findOneByQuery(String query, Object... params) {
-        try {
-            T result = jdbc.queryForObject(query, rowMapper, params);
-            return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
-    }
 }
