@@ -32,6 +32,9 @@ public class ReviewQueries {
     public static final String SQL_REVIEWS_DELETE_DISLIKE =
             "DELETE FROM review_likes WHERE review_id = ? AND user_id = ? AND is_like = FALSE";
 
-    public static final String SQL_REVIEWS_GET_LIKE_OR_DISLIKE =
+    public static final String SQL_REVIEWS_LIKE_STATUS =
             "SELECT is_like FROM review_likes WHERE review_id = ? AND user_id = ?";
+
+    public static final String SQL_REVIEWS_GET_LIKES_BY_REVIEW_ID =
+            "SELECT user_id, is_like FROM review_likes WHERE review_id = ?";
 }

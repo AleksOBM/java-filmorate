@@ -27,5 +27,6 @@ public interface ReviewStorage {
 
     boolean checkReviewIsNotPresent(long id);
 
-    Optional<Boolean> getReviewLikeOrDislike(long reviewId, long userId);
+    Optional<Boolean> getReactionsStatus(long reviewId, long userId);
 }
+

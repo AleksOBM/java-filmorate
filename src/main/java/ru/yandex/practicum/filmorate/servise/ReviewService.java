@@ -85,7 +85,7 @@ public class ReviewService {
         checkReviewExists(id);
         checkUserExists(userId);
 
-        Optional<Boolean> likeStatus = reviewStorage.getReviewLikeOrDislike(id, userId);
+        Optional<Boolean> likeStatus = reviewStorage.getReactionsStatus(id, userId);
 
         if (likeStatus.isEmpty()) {
             reviewStorage.addReviewLike(id, userId);
@@ -100,7 +100,7 @@ public class ReviewService {
         log.info("Пользователь id={} ставит дизлайк отзыву id={}", userId, id);
         checkReviewExists(id);
         checkUserExists(userId);
-        Optional<Boolean> likeStatus = reviewStorage.getReviewLikeOrDislike(id, userId);
+        Optional<Boolean> likeStatus = reviewStorage.getReactionsStatus(id, userId);
 
         if (likeStatus.isEmpty()) {
             reviewStorage.addReviewDislike(id, userId);

@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.dal.ReviewStorage;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static ru.yandex.practicum.filmorate.dal.database.sql.ReviewQueries.*;
@@ -60,10 +62,16 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
 
     @Override
     public Collection<Review> findReviewsByFilmId(Long filmId, int count) {
+        Collection<Review> reviews;
         if (filmId == null) {
-            return findManyByQuery(SQL_REVIEWS_FIND_ALL, count);
+            reviews = findManyByQuery(SQL_REVIEWS_FIND_ALL, count);
+        } else {
+            reviews = findManyByQuery(SQL_REVIEWS_FIND_BY_FILM_ID, filmId, count);
         }
-        return findManyByQuery(SQL_REVIEWS_FIND_BY_FILM_ID, filmId, count);
+        reviews.forEach(review ->{
+            review.setUserLikes(findAllReactionsByReviewId(review.getId()));
+        });
+        return reviews;
     }
 
     @Override
@@ -99,9 +107,22 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         return checkIdIsNotPresentInTable(id, "reviews");
     }
 
-    public Optional<Boolean> getReviewLikeOrDislike(long reviewId, long userId) {
-        return jdbc.query(SQL_REVIEWS_GET_LIKE_OR_DISLIKE, (rs, rowNum) -> rs.getBoolean("is_like"), reviewId, userId)
+    public Optional<Boolean> getReactionsStatus(long reviewId, long userId) {
+        return jdbc.query(SQL_REVIEWS_LIKE_STATUS, (rs, rowNum) -> rs.getBoolean("is_like"), reviewId, userId)
                 .stream()
                 .findFirst();
+    }
+
+    private Map<Long, Boolean> findAllReactionsByReviewId(long reviewId) {
+        return jdbc.query(SQL_REVIEWS_GET_LIKES_BY_REVIEW_ID, rs -> {
+            Map<Long, Boolean> reactions = new HashMap<>();
+            while (rs.next()) {
+                reactions.put(
+                        rs.getLong("user_id"),
+                        rs.getBoolean("is_like")
+                );
+            }
+            return reactions;
+        }, reviewId);
     }
 }
