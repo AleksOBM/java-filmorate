@@ -73,7 +73,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
         } else {
             reviews = findManyByQuery(SQL_REVIEWS_FIND_BY_FILM_ID, filmId, count);
         }
-        reviews.forEach(review ->{
+        reviews.forEach(review -> {
             review.setUserLikes(findAllReactionsByReviewId(review.getId()));
         });
         return reviews;
@@ -108,7 +108,7 @@ public class ReviewDbStorage extends BaseDbStorage<Review> implements ReviewStor
     }
 
     @Override
-    public boolean checkReviewIsNotPresent(long reviewId){
+    public boolean checkReviewIsNotPresent(long reviewId) {
         return checkIdIsNotPresentInTable(reviewId, "reviews");
     }
 
