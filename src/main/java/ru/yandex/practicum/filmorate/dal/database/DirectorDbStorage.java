@@ -29,14 +29,17 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
 	@Override
 	public Collection<Director> findAll() {
-		// todo
-		throw new MethodNotImplementedException();
+		return findAllInTable("directors");
 	}
 
 	@Override
 	public Director createDirector(Director director) {
-		// todo
-		throw new MethodNotImplementedException();
+		int id = (int) insertWithKeyHolder(
+				"INSERT INTO directors (director_name) VALUES (?)",
+				director.getName()
+		);
+		director.setId(id);
+		return director;
 	}
 
 	@Override

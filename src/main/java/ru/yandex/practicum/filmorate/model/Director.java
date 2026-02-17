@@ -13,6 +13,6 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(of = "id")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Director {
-	Long id;
+	Integer id;
 	String name;
 }

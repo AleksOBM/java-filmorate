@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class DirectorDto {
 
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
-	long id;
+	int id;
 
 	String name;
 }

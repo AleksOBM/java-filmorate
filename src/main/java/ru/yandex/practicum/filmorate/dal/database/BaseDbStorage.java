@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.dal.database;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -52,7 +54,16 @@ public class BaseDbStorage<T> {
             return ps;
         }, keyHolder);
 
-        Long id = keyHolder.getKeyAs(Long.class);
+        Long id;
+        try{
+            id = keyHolder.getKeyAs(Long.class);
+        } catch (DataRetrievalFailureException e) {
+            Integer id1 = keyHolder.getKeyAs(Integer.class);
+            if (id1 == null) {
+                throw new InternalServerException("Не удалось получить id элемента");
+            }
+            id = (long) id1;
+        }
         if (id != null) {
             return id;
         } else {

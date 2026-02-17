@@ -13,8 +13,12 @@ public class DirectorUpdateRequest {
 
 	@NotNull(message = "Id должен быть указан.")
 	@Positive(message = "Id должен быть положительным числом.")
-	Long id;
+	Integer id;
 
 	@Size(min = 2, max = 70, message = "Длина имени режиссера может быть от 2 до 70 символов.")
 	String name;
+
+	public boolean hasNname() {
+		return name != null;
+	}
 }
