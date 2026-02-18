@@ -13,11 +13,14 @@ import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.servise.util.FriendsAction;
+import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -26,6 +29,13 @@ public class UserService {
 	@Autowired
 	@Qualifier("userDbStorage")
 	private UserStorage userStorage;
+
+	@Autowired
+	@Qualifier("filmDbStorage")
+	private FilmStorage filmStorage;
+
+	@Autowired
+	private FilmService filmService;
 
 	public void changeFriends(FriendsAction action, long userId, long friendId) {
 		switch (action) {
@@ -170,5 +180,45 @@ public class UserService {
 
 		String updatedData = String.join(", ", updatedFields);
 		log.info("Данные для обновления: [{}]", updatedData);
+	}
+	// Рекомендации
+	public Collection<FilmDto> getRecommendations(long userId) {
+		log.info("Получение рекомендаций для пользователя id={}.", userId);
+		easyCheckUser(userId);
+
+		Map<Long, Set<Long>> allLikes = filmStorage.getAllLikes();
+		Set<Long> targetUserLikes = allLikes.getOrDefault(userId, Collections.emptySet());
+
+		if (targetUserLikes.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		long similarUserId = -1;
+		int maxOverlap = 0;
+
+		for (Map.Entry<Long, Set<Long>> entry : allLikes.entrySet()) {
+			long otherUserId = entry.getKey();
+			if (otherUserId == userId) continue;
+
+			Set<Long> otherUserLikes = entry.getValue();
+			int overlap = (int) targetUserLikes.stream()
+					.filter(otherUserLikes::contains)
+					.count();
+
+			if (overlap > maxOverlap) {
+				maxOverlap = overlap;
+				similarUserId = otherUserId;
+			}
+		}
+
+		if (similarUserId == -1) {
+			return Collections.emptyList();
+		}
+
+		Set<Long> similarUserLikes = allLikes.get(similarUserId);
+		return similarUserLikes.stream()
+				.filter(filmId -> !targetUserLikes.contains(filmId))
+				.map(filmService::findById)
+				.collect(Collectors.toList());
 	}
 }

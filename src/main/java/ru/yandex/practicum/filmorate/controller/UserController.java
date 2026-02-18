@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dto.request.update.UserUpdateRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.servise.util.FriendsAction;
 import ru.yandex.practicum.filmorate.servise.UserService;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 
 import java.util.Collection;
 
@@ -58,5 +59,9 @@ public class UserController {
 	@DeleteMapping("/{userId}/friends/{friendId}")
 	public void removeFromFriends(@PathVariable long userId, @PathVariable long friendId) {
 		userService.changeFriends(FriendsAction.REMOVE, userId, friendId);
+	}
+	@GetMapping("/{id}/recommendations")
+	public Collection<FilmDto> getRecommendations(@PathVariable long id) {
+		return userService.getRecommendations(id);
 	}
 }
