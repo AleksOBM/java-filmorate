@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.validator.constraints.time.DurationMin;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -35,6 +36,9 @@ public class FilmUpdateRequest {
 	@Size(min = 1, message = "Должен быть указан хотябы один жанр.")
 	private Set<Genre> genres;
 
+	@Size(min = 1, message = "Должен быть указан хотябы один режиссер.")
+	private Set<Director> directors;
+
 	private Mpa mpa;
 
 	public boolean hasName() {
@@ -55,6 +59,10 @@ public class FilmUpdateRequest {
 
 	public boolean hasGenres() {
 		return genres != null;
+	}
+
+	public boolean hasDirectors() {
+		return directors != null;
 	}
 
 	public boolean hasMpa() {

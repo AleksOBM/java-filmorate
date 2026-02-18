@@ -102,10 +102,10 @@ REFERENCES users (id);
 ALTER TABLE likes ADD CONSTRAINT fk_likes_film_id FOREIGN KEY(film_id)
 REFERENCES films (id);
 
-ALTER TABLE directors_of_films ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)
+ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)
 REFERENCES directors (id);
 
-ALTER TABLE directors_of_films ADD CONSTRAINT fk_directors_of_films_film_id FOREIGN KEY(film_id)
+ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_film_id FOREIGN KEY(film_id)
 REFERENCES films (id);
 
 ALTER TABLE reviews ADD CONSTRAINT fk_reviews_user_id FOREIGN KEY (user_id)

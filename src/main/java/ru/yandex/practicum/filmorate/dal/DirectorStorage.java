@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface DirectorStorage {
 
-		/// Получить режиссера по id
+	/// Получить режиссера по id
 	Optional<Director> findById(long id);
 
 	/// Получить всех режиссеров
@@ -20,6 +20,9 @@ public interface DirectorStorage {
 	Director updateDirector(Director director);
 
 	/// Удалить режиссера по id
-	void deleteDirector(Director director);
+	void deleteDirector(Integer directorId);
+
+	/// Проверить что директор отсутствует по id
+	boolean checkDirectorIsNotPresent(int directorId);
 
 }

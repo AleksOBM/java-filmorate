@@ -16,10 +16,7 @@ public final class DirectorMapper {
 	}
 
 	public static DirectorDto mapToDirectorDto(Director director) {
-		return DirectorDto.builder()
-				.id(director.getId())
-				.name(director.getName())
-				.build();
+		return new DirectorDto(director.getId(), director.getName());
 	}
 
 	public static Director updateDirectorFields(Director director, DirectorUpdateRequest request) {

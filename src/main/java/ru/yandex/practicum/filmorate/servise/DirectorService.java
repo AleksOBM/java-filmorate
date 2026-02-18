@@ -9,12 +9,10 @@ import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.request.create.DirectorCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.DirectorUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.MethodNotImplementedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.io.IOException;
 import java.util.Collection;
 
 @Service
@@ -48,14 +46,26 @@ public class DirectorService {
 
 	public DirectorDto update(DirectorUpdateRequest request) {
 		log.info("Обновление данных режиссера с id={}.", request.getId());
-		// todo
-		throw new MethodNotImplementedException();
+		Director oldDirector = findDirector(request.getId());
+		Director newDirector = DirectorMapper.updateDirectorFields(oldDirector, request);
+
+		try {
+			newDirector = directorStorage.updateDirector(newDirector);
+		} catch (DuplicateKeyException e) {
+			throw new DuplicatedDataException(
+					"Этот режиссер " + newDirector.getName() + " уже был добавлен ранее."
+			);
+		}
+
+		return DirectorMapper.mapToDirectorDto(newDirector);
 	}
 
 	public void delete(int directorId) {
 		log.info("Удаление режиссера с id={}", directorId);
-		// todo
-		throw new MethodNotImplementedException();
+		if (directorStorage.checkDirectorIsNotPresent(directorId)) {
+			throw new NotFoundException("Режиссер с id=" + directorId + " не найден.");
+		}
+		directorStorage.deleteDirector(directorId);
 	}
 
 	private Director findDirector(int directorId) {
@@ -63,4 +73,5 @@ public class DirectorService {
 				() -> new NotFoundException("Режиссер с id=" + directorId + " не найден.")
 		);
 	}
+
 }

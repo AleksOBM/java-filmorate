@@ -13,8 +13,8 @@ import java.util.Set;
 
 @Data
 @Builder(toBuilder = true)
-@Jacksonized
 @EqualsAndHashCode(of = "id")
+@Jacksonized
 public class Film {
 
 	private Long id;
@@ -31,10 +31,13 @@ public class Film {
 	private Integer mpaId;
 
 	@Builder.Default
-	private Set<Long> likes = new HashSet<>();
+	private Set<Integer> directorIds = new HashSet<>();
 
 	@Builder.Default
+	private Set<Long> likes = new HashSet<>();
+
 	@JsonProperty(value = "rate")
+	@Builder.Default
 	private int likesCount = 0;
 
 	public int getLikesCount() {
@@ -52,6 +55,10 @@ public class Film {
 
 	public void addGenreId(int genreId) {
 		genreIds.add(genreId);
+	}
+
+	public void addDirectorId(int directorId) {
+		directorIds.add(directorId);
 	}
 
 	public void addLike(long userId) {

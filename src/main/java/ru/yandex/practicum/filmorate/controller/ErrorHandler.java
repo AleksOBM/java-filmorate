@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -81,6 +82,12 @@ public class ErrorHandler {
 	@ExceptionHandler
 	public ErrorResponse handlerMethodValidationException(final MethodValidationException e) {
 		return new ErrorResponse(e.getAllErrors().getFirst().getDefaultMessage());
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler
+	public ErrorResponse handleEmptyBody(HttpMessageNotReadableException ex) {
+		return new ErrorResponse("Тело запроса отсутствует или некорректно");
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

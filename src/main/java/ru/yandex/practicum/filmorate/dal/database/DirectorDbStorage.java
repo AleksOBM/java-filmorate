@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.DirectorStorage;
-import ru.yandex.practicum.filmorate.exception.MethodNotImplementedException;
 import ru.yandex.practicum.filmorate.model.Director;
 
 import java.util.Collection;
@@ -44,13 +43,24 @@ public class DirectorDbStorage extends BaseDbStorage<Director> implements Direct
 
 	@Override
 	public Director updateDirector(Director director) {
-		// todo
-		throw new MethodNotImplementedException();
+		updateWithControl(
+				"UPDATE directors SET director_name= ? WHERE id = ?",
+				director.getName(),
+				director.getId()
+		);
+		return director;
 	}
 
 	@Override
-	public void deleteDirector(Director director) {
-		// todo
-		throw new MethodNotImplementedException();
+	public void deleteDirector(Integer directorId) {
+		updateWithControl(
+				"DELETE FROM directors WHERE id = ?",
+				directorId
+		);
 	}
+
+	public boolean checkDirectorIsNotPresent(int directorId) {
+		return checkIdIsNotPresentInTable(directorId, "directors");
+	}
+
 }

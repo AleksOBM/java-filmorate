@@ -10,9 +10,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 
+@JsonPropertyOrder
 @Data
 @Builder
-@JsonPropertyOrder
 public class FilmDto {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private long id;
@@ -29,4 +29,7 @@ public class FilmDto {
 
 	@Builder.Default
 	private Collection<GenreDto> genres = new ArrayList<>();
+
+	@Builder.Default
+	private Collection<DirectorDto> directors = new ArrayList<>();
 }
