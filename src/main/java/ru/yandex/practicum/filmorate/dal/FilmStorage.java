@@ -4,6 +4,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 
 public interface FilmStorage {
 
@@ -30,4 +32,7 @@ public interface FilmStorage {
 
 	/// Убрать лайк
 	void removeLike(long filmId, long userId);
+
+	// Метод для получения матрицы лайков всех пользователей
+	Map<Long, Set<Long>> getAllLikes();
 }

@@ -11,6 +11,9 @@ import ru.yandex.practicum.filmorate.servise.util.IdentifyService;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
+
+import java.util.Set;
 
 @Component
 @Qualifier("inMemoryFilmStorage")
@@ -62,5 +65,10 @@ public class InMemoryFilmStorage implements FilmStorage {
 	@Override
 	public void setLike(long filmId, long userId) {
 		throw new MethodNotImplementedException();
+	}
+
+	@Override
+	public Map<Long, Set<Long>> getAllLikes() {
+		return new HashMap<>();
 	}
 }

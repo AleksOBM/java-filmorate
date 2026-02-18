@@ -13,6 +13,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import static ru.yandex.practicum.filmorate.dal.database.sql.FilmQueryes.*;
 
@@ -141,4 +143,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return findColumnByQuery(SQL_FILMS_FIND_GENREIDS_BY_FILM_ID, Integer.class, filmId);
 	}
 
+	@Override
+	public Map<Long, Set<Long>> getAllLikes() {
+
+		String sql = "SELECT user_id, film_id FROM likes";
+		Map<Long, Set<Long>> allLikes = new HashMap<>();
+
+		jdbc.query(sql, (rs) -> {
+			long userId = rs.getLong("user_id");
+			long filmId = rs.getLong("film_id");
+			allLikes.computeIfAbsent(userId, k -> new HashSet<>()).add(filmId);
+		});
+
+		return allLikes;
+	}
 }
