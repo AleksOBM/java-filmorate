@@ -60,6 +60,7 @@ public class UserController {
 	public void removeFromFriends(@PathVariable long userId, @PathVariable long friendId) {
 		userService.changeFriends(FriendsAction.REMOVE, userId, friendId);
 	}
+	
 	@GetMapping("/{id}/recommendations")
 	public Collection<FilmDto> getRecommendations(@PathVariable long id) {
 		return userService.getRecommendations(id);
