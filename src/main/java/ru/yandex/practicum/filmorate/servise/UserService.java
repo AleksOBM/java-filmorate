@@ -181,6 +181,7 @@ public class UserService {
 		String updatedData = String.join(", ", updatedFields);
 		log.info("Данные для обновления: [{}]", updatedData);
 	}
+
 	// Рекомендации
 	public Collection<FilmDto> getRecommendations(long userId) {
 		log.info("Получение рекомендаций для пользователя id={}.", userId);
