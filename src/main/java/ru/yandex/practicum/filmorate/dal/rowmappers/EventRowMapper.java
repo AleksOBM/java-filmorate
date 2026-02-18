@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
 
 @Component
 @Qualifier("eventRowMapper")
