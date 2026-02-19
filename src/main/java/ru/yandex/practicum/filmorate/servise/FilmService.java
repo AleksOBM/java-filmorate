@@ -172,6 +172,24 @@ public class FilmService {
 				);
 	}
 
+	public Collection<FilmDto> getCommonLikedFilms(Long userId, Long friendId) {
+		log.info("Получение общих с другом фильмов userId={}, friendId={}", userId, friendId);
+
+		if (userStorage.checkUserIsNotPresent(userId)) {
+			throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
+		}
+		if (userStorage.checkUserIsNotPresent(friendId)) {
+			throw new NotFoundException("Пользователь с id=" + friendId + " не найден.");
+		}
+		return filmStorage.getCommonLikedFilms(userId, friendId).stream()
+				.map(film -> FilmMapper.mapToFilmDto(
+								film,
+								mpas.get(film.getMpaId()),
+								getGenresByIds(film.getGenreIds())
+						)
+				).toList();
+	}
+
 	public FilmDto create(FilmCreateRequest request) {
 		log.info("Добавление нового фильма");
 

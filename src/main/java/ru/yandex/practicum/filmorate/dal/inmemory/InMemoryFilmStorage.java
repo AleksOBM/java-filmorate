@@ -81,4 +81,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 	public Map<Long, Set<Long>> getAllLikes() {
 		return new HashMap<>();
 	}
+
+	@Override
+	public Collection<Film> getCommonLikedFilms(long userId, long friendId) {
+		throw new MethodNotImplementedException();
+	}
 }

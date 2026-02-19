@@ -184,4 +184,21 @@ public class FilmQueryes {
 			ORDER BY likes_count DESC
 			LIMIT ?
 			""";
+
+	public static final String SQL_FILMS_FIND_COMMON_LIKED = """
+			SELECT f.*,
+			       l_all.user_id,
+			       g.genre_id,
+			       (SELECT COUNT(*) FROM likes WHERE film_id = f.id) as likes_count
+			FROM films f
+			LEFT JOIN likes l_all ON f.id = l_all.film_id
+			LEFT JOIN genres_of_films g ON f.id = g.film_id
+			WHERE f.id IN (
+			    SELECT l1.film_id
+			    FROM likes l1
+			    JOIN likes l2 ON l1.film_id = l2.film_id
+			    WHERE l1.user_id = ? AND l2.user_id = ?
+			)
+			ORDER BY likes_count DESC;
+			""";
 }

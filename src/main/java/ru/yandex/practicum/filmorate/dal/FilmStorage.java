@@ -41,4 +41,6 @@ public interface FilmStorage {
 
 	/// Метод для получения матрицы лайков всех пользователей
 	Map<Long, Set<Long>> getAllLikes();
+
+	Collection<Film> getCommonLikedFilms(long userId, long friendId);
 }

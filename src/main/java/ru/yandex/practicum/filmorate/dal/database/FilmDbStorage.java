@@ -208,4 +208,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 		return allLikes;
 	}
+
+	@Override
+	public Collection<Film> getCommonLikedFilms(long userId, long friendId) {
+		return findManyFilms(SQL_FILMS_FIND_COMMON_LIKED, userId, friendId);
+	}
 }
