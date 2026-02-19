@@ -81,7 +81,7 @@ public class FilmService {
 		}
 	}
 
-	public Collection<FilmDto> getTopFilms(Integer count) {
+	public Collection<FilmDto> getTopFilms(Integer count, Integer genreId, String year) {
 		log.info("Получение топ {} фильмов.", count);
 		if (count <= 0) {
 			throw new ParameterNotValidException(
@@ -89,7 +89,15 @@ public class FilmService {
 					"Топ фильмов должен быть положительным числом."
 			);
 		}
-		return filmStorage.getTop(count).stream()
+
+		Collection<Film> films;
+		if (genreId != null || year != null) {
+			films = filmStorage.getTopByFilters(count, genreId, year);
+		} else {
+			films = filmStorage.getTop(count);
+		}
+
+		return films.stream()
 				.map(film -> FilmMapper.mapToFilmDto(
 								film,
 								mpas.get(film.getMpaId()),

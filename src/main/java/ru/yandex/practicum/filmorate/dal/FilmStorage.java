@@ -27,6 +27,9 @@ public interface FilmStorage {
 	/// Получить топ фильмов
 	Collection<Film> getTop(int count);
 
+	/// Получить топ фильмов по фильтрам
+	Collection<Film> getTopByFilters(Integer count, Integer genreId, String year);
+
 	/// Поставить лайк
 	void setLike(long filmId, long userId);
 

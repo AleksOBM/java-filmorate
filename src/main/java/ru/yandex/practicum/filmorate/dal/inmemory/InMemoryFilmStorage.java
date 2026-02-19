@@ -58,6 +58,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
+	public Collection<Film> getTopByFilters(Integer count, Integer genreId, String year) {
+		throw new MethodNotImplementedException();
+	}
+
+	@Override
 	public void removeLike(long filmId, long userId) {
 		throw new MethodNotImplementedException();
 	}

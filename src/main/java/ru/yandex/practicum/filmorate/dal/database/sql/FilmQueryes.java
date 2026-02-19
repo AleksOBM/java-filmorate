@@ -99,4 +99,35 @@ public class FilmQueryes {
 			       mpa_id = ?
 			 WHERE id = ?
 			""";
+
+	public static final String SQL_FILMS_FIND_TOP_BY_GENRES = """
+			SELECT f.*, COUNT(fl.user_id) as likes_count
+			FROM films f
+			LEFT JOIN likes fl ON f.id = fl.film_id
+			LEFT JOIN genres_of_films gr ON f.id = gr.film_id
+			WHERE gr.genre_id = ?
+			GROUP BY f.id
+			ORDER BY likes_count DESC
+			LIMIT ?
+			""";
+
+	public static final String SQL_FILMS_FIND_TOP_BY_YEAR = """
+			SELECT f.*, COUNT(fl.user_id) as likes_count
+			FROM (SELECT * FROM films WHERE EXTRACT(YEAR FROM release_date) = ?) f
+			LEFT JOIN likes fl ON f.id = fl.film_id
+			GROUP BY f.id
+			ORDER BY likes_count DESC
+			LIMIT ?
+			""";
+
+	public static final String SQL_FILMS_FIND_TOP_BY_GENRE_AND_YEAR = """
+			SELECT f.*, COUNT(fl.user_id) as likes_count
+			FROM (SELECT * FROM films WHERE EXTRACT(YEAR FROM release_date) = ?) f
+			LEFT JOIN likes fl ON f.id = fl.film_id
+			LEFT JOIN genres_of_films gr ON f.id = gr.film_id
+			WHERE gr.genre_id = ?
+			GROUP BY f.id
+			ORDER BY likes_count DESC
+			LIMIT ?
+			""";
 }

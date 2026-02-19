@@ -91,6 +91,25 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	}
 
 	@Override
+	public Collection<Film> getTopByFilters(Integer top, Integer genreId, String year) {
+		Collection<Film> films;
+		if (genreId != null && year != null && !year.isEmpty()) {
+			films =  findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRE_AND_YEAR, Integer.parseInt(year), genreId, top);
+		} else if (year != null && !year.isEmpty()) {
+			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_YEAR, Integer.parseInt(year), top);
+		} else if (genreId != null) {
+			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRES, genreId, top);
+		} else {
+			films = findManyByQuery(SQL_FILMS_FIND_TOP, top);
+		}
+
+		return films.stream().peek(film -> {
+			Set<Integer> genres = getGenreIdsByFilmId(film.getId());
+			film.setGenreIds(new HashSet<>(genres));
+        }).toList();
+	}
+
+	@Override
 	public boolean checkFilmIsNotPresent(Long filmId) {
 		return checkIdIsNotPresentInTable(filmId, "films");
 	}
