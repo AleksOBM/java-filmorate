@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.dto.request.create.ReviewCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.ReviewUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
@@ -24,16 +26,19 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final EventService eventService;
 
     @Autowired
     public ReviewService(
             @Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
             @Qualifier("filmDbStorage") FilmStorage filmStorage,
-            @Qualifier("userDbStorage") UserStorage userStorage
+            @Qualifier("userDbStorage") UserStorage userStorage,
+            EventService eventService
     ) {
         this.reviewStorage = reviewStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.eventService = eventService;
     }
 
     public ReviewDto createReview(ReviewCreateRequest request) {
@@ -44,6 +49,7 @@ public class ReviewService {
 
         Review review = ReviewMapper.mapToReview(request);
         review = reviewStorage.createReview(review);
+        eventService.addUserEvent(review.getUserId(), EventType.REVIEW, Operation.ADD, review.getId());
 
         return ReviewMapper.mapToReviewDto(review);
     }
@@ -56,6 +62,7 @@ public class ReviewService {
 
         Review newReview = ReviewMapper.updateReviewFields(oldReview, request);
         newReview = reviewStorage.updateReview(newReview);
+        eventService.addUserEvent(newReview.getUserId(), EventType.REVIEW, Operation.UPDATE, newReview.getId());
 
         return ReviewMapper.mapToReviewDto(newReview);
     }
@@ -63,7 +70,9 @@ public class ReviewService {
     public void deleteReview(Long id) {
         log.info("Удаление отзыва с id={}", id);
         checkReviewExists(id);
+        long userId = findReviewById(id).getUserId();
         reviewStorage.deleteReview(id);
+        eventService.addUserEvent(userId, EventType.REVIEW, Operation.REMOVE, id);
     }
 
     public ReviewDto findReviewById(Long id) {

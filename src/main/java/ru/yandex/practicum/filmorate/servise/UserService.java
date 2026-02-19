@@ -6,11 +6,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.UserStorage;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.request.create.UserCreateRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.dto.request.update.UserUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.servise.util.FriendsAction;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
@@ -31,6 +34,8 @@ public class UserService {
 	private UserStorage userStorage;
 
 	@Autowired
+	private EventService eventService;
+
 	@Qualifier("filmDbStorage")
 	private FilmStorage filmStorage;
 
@@ -65,24 +70,25 @@ public class UserService {
 				}
 
 				if (riendsOfFriend.contains(userId)) {
-					userStorage.addFriend(userId, friendId);
 					log.info("Пользователи с id={} и id={} стали друзьями.", userId, friendId);
 				}
 
 				userStorage.addFriend(userId, friendId);
+				eventService.addUserEvent(userId, EventType.FRIEND, Operation.ADD, friendId);
 			}
 
 			case REMOVE -> {
-				if (! friendsOfUser.contains(friendId)) {
+				if (!friendsOfUser.contains(friendId)) {
 					throw new NoContentException();
 				}
 				userStorage.removeFriend(userId, friendId);
+				eventService.addUserEvent(userId, EventType.FRIEND, Operation.REMOVE, friendId);
 			}
 		}
 	}
 
 	public UserDto create(UserCreateRequest request) {
-		log.info("Добавление нового пользователя login={}.",  request.getLogin());
+		log.info("Добавление нового пользователя login={}.", request.getLogin());
 		User user = UserMapper.mapToUser(request);
 
 		try {
@@ -140,6 +146,10 @@ public class UserService {
 		return userStorage.findMutualFriends(userId, friendId).stream()
 				.map(UserMapper::mapToUserDto)
 				.toList();
+	}
+
+	public Collection<EventDto> getUserEvents(long userId) {
+		return eventService.getUserEvents(userId);
 	}
 
 	private void easyCheckUser(long userId) {

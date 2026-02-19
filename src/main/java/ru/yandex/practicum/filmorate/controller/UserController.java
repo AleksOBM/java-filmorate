@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.request.create.UserCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.UserUpdateRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -59,6 +60,11 @@ public class UserController {
 	@DeleteMapping("/{userId}/friends/{friendId}")
 	public void removeFromFriends(@PathVariable long userId, @PathVariable long friendId) {
 		userService.changeFriends(FriendsAction.REMOVE, userId, friendId);
+	}
+
+	@GetMapping("/{id}/feed")
+	public Collection<EventDto> getUserEvents(@PathVariable(name = "id") long userId) {
+		return userService.getUserEvents(userId);
 	}
 
 	@GetMapping("/{id}/recommendations")

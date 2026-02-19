@@ -16,9 +16,7 @@ import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ParameterNotValidException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.servise.util.LikeAction;
 
 import java.util.*;
@@ -34,18 +32,21 @@ public class FilmService {
 
 	private Map<Integer, Mpa> mpas;
 	private Map<Integer, Genre> genres;
+	private final EventService eventService;
 
 	@Autowired
 	public FilmService(
 			@Qualifier("filmDbStorage") FilmStorage filmStorage,
 			@Qualifier("userDbStorage") UserStorage userStorage,
 			@Qualifier("mpaDbStorage") MpaStorage mpaStorage,
-			@Qualifier("genreDbStorage") GenreStorage genreStorage
+			@Qualifier("genreDbStorage") GenreStorage genreStorage,
+			EventService eventService
 	) {
 		this.filmStorage = filmStorage;
 		this.userStorage = userStorage;
 		this.mpaStorage = mpaStorage;
 		this.genreStorage = genreStorage;
+		this.eventService = eventService;
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -69,8 +70,14 @@ public class FilmService {
 		}
 
 		switch (action) {
-			case SET -> filmStorage.setLike(filmId, userId);
-			case REMOVE -> filmStorage.removeLike(filmId, userId);
+			case SET -> {
+				filmStorage.setLike(filmId, userId);
+				eventService.addUserEvent(userId, EventType.LIKE, Operation.ADD, filmId);
+			}
+			case REMOVE -> {
+				filmStorage.removeLike(filmId, userId);
+				eventService.addUserEvent(userId, EventType.LIKE, Operation.REMOVE, filmId);
+			}
 		}
 	}
 

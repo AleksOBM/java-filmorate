@@ -70,5 +70,4 @@ public class BaseDbStorage<T> {
     protected List<T> findManyByQuery(String query, Object... params) {
         return jdbc.query(query, rowMapper, params);
     }
-
 }
