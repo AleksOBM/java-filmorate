@@ -185,7 +185,8 @@ public class FilmService {
 				.map(film -> FilmMapper.mapToFilmDto(
 								film,
 								mpas.get(film.getMpaId()),
-								getGenresByIds(film.getGenreIds())
+								getGenresByIds(film.getGenreIds()),
+								getDirectorsByIds(film.getDirectorIds())
 						)
 				).toList();
 	}
