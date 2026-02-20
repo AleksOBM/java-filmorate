@@ -107,6 +107,10 @@ public class UserService {
 
 	public UserDto update(UserUpdateRequest request) {
 		log.info("Обновление данных о пользователе с id={}.", request.getId());
+		if (request.getName().isBlank()) {
+			request.setName(request.getLogin());
+		}
+
 		User oldUser = findUser(request.getId());
 		logUserUpdate(request, oldUser);
 		User newUser = UserMapper.updateUserFields(oldUser, request);

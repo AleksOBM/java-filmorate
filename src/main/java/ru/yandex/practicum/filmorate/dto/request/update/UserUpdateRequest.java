@@ -12,7 +12,7 @@ public class UserUpdateRequest {
     @Positive(message = "Id должен быть положительным числом.")
     private Long id;
 
-    @Size(min = 2, max = 50, message = "Длина имени пользователя может быть от 2 до 50 символов.")
+    @Size(max = 50, message = "Длина имени пользователя не может быть больше 50 символов.")
     private String name;
 
     @Pattern(regexp = "^[A-Za-z0-9_]+$", message = "Логин может состоять только из этих символов [A-Za-z0-9_].")
