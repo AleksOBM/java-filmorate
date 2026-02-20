@@ -1,55 +1,38 @@
 package ru.yandex.practicum.filmorate.dal.inmemory;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.MethodNotImplementedException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.servise.util.IdentifyService;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashMap;
-
-import java.util.Set;
+import java.util.*;
 
 @Component
-@Qualifier("inMemoryFilmStorage")
-@RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
-
-	private final Map<Long, Film> films;
-	private final IdentifyService identifyService;
 
 	@Override
 	public Optional<Film> findById(long id) {
-		return films.values().stream()
-				.filter(f -> f.getId().equals(id)).findFirst();
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
 	public Collection<Film> findAll() {
-		return films.values();
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
 	public Film createFilm(Film film) {
-		film.setId(identifyService.getNextId(films));
-		films.put(film.getId(), film);
-		return film;
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
 	public Film updateFilm(Film film) {
-		films.put(film.getId(), film);
-		return film;
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
 	public boolean checkFilmIsNotPresent(Long filmId) {
-		return films.containsKey(filmId);
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
@@ -59,6 +42,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
 	@Override
 	public Collection<Film> getTopByFilters(Integer count, Integer genreId, String year) {
+		throw new MethodNotImplementedException();
+	}
+
+	@Override
+	public void setLike(long filmId, long userId) {
 		throw new MethodNotImplementedException();
 	}
 
@@ -73,13 +61,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public void setLike(long filmId, long userId) {
-		throw new MethodNotImplementedException();
-	}
-
-	@Override
 	public Map<Long, Set<Long>> getAllLikes() {
-		return new HashMap<>();
+		throw new MethodNotImplementedException();
 	}
 
 	@Override
@@ -89,9 +72,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 
 	@Override
 	public Collection<Film> search(String query, String by) {
-		throw new ru.yandex.practicum.filmorate.exception.MethodNotImplementedException();
+		throw new MethodNotImplementedException();
 	}
-	
+
 	@Override
 	public void removeFilm(long filmId) {
 		throw new MethodNotImplementedException();
