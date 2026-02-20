@@ -43,7 +43,7 @@ public class EventDbStorage extends BaseDbStorage<Event> implements EventStorage
                 event.getEventType().name(),
                 event.getOperation().name(),
                 event.getEntityId());
-        event.setId(eventId);
+        event.setEventId(eventId);
         return event;
     }
 }
