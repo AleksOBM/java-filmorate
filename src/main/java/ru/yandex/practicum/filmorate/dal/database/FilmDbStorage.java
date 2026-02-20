@@ -108,6 +108,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return films.stream().peek(film -> {
 			Set<Integer> genres = getGenreIdsByFilmId(film.getId());
 			film.setGenreIds(new HashSet<>(genres));
+			Set<Integer> directors = getDirectorIdsByFilmId(film.getId());
+			film.setDirectorIds(new HashSet<>(directors));
 		}).toList();
 	}
 
