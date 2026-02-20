@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event {
-    private Long id;
+    private Long eventId;
     private Long userId;
     private Instant timestamp;
     private EventType eventType;
