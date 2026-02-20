@@ -36,6 +36,9 @@ public interface FilmStorage {
 	/// Убрать лайк
 	void removeLike(long filmId, long userId);
 
-	// Метод для получения матрицы лайков всех пользователей
+	/// Получить список фильмов по id режиссера
+	Collection<Film> getALLFilmsOfDirector(Integer directorId);
+
+	/// Метод для получения матрицы лайков всех пользователей
 	Map<Long, Set<Long>> getAllLikes();
 }

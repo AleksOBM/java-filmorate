@@ -1,4 +1,4 @@
-# java-filmorate (Java Filmorate)
+# java-filmorate
 ### Описание (Description)  
 The Filmorate project — это приложение для работы с базой данных фильмов.
 ### Основные возможности

@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.validator.constraints.time.DurationMin;
-import ru.yandex.practicum.filmorate.dto.adapters.*;
+import ru.yandex.practicum.filmorate.dto.adapters.MinDate;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
@@ -18,16 +19,16 @@ import java.util.Set;
 @Data
 public class FilmCreateRequest {
 
-	@NotNull(message = "Название должно быть указано.")
 	@Size(min = 2, max = 100, message = "Название должно содержать от 2 до 100 символов.")
+	@NotNull(message = "Название должно быть указано.")
 	private String name;
 
-	@NotNull(message = "Описание должно быть указано.")
 	@Size(max = 200, message = "Максимальная длина описания — 200 символов.")
+	@NotNull(message = "Описание должно быть указано.")
 	private String description;
 
-	@NotNull(message = "Дата релиза должна быть указана.")
 	@Past(message = "Дата релиза должна быть в прошлом.")
+	@NotNull(message = "Дата релиза должна быть указана.")
 	@MinDate(minDate = "1895-12-28")
 	private LocalDate releaseDate;
 
@@ -40,5 +41,7 @@ public class FilmCreateRequest {
 	private Mpa mpa;
 
 	private Set<Genre> genres = new HashSet<>();
+
+	private Set<Director> directors = new HashSet<>();
 
 }

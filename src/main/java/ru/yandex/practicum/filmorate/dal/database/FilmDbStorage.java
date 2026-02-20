@@ -44,10 +44,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 		film.setId(id);
 		insertGenreIds(film);
+		insertDirectorIds(film);
 		return film;
 	}
 
 	@Override
+	@Transactional
 	public Film updateFilm(Film film) {
 		updateWithControl(
 				SQL_FILMS_UPDATE,
@@ -58,6 +60,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getMpaId(),
 				film.getId()
 		);
+
+		insertGenreIds(film);
+		insertDirectorIds(film);
 		return film;
 	}
 
@@ -66,6 +71,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	public Optional<Film> findById(long filmId) {
 		Optional<Film> filmOptional = findOneByIdInTable(filmId, "films");
 		filmOptional.ifPresent(film -> film.setGenreIds(getGenreIdsByFilmId(filmId)));
+		filmOptional.ifPresent(film -> film.setDirectorIds(getDirectorIdsByFilmId(filmId)));
 
 		return filmOptional;
 	}
@@ -83,6 +89,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	@Override
 	public void removeLike(long filmId, long userId) {
 		updateWithControl(SQL_FILMS_DELETE_LIKE, filmId, userId);
+	}
+
+	@Override
+	public Collection<Film> getALLFilmsOfDirector(Integer directorId) {
+		return findManyFilms(SQL_FILMS_FIND_ALL_OF_DIRECTOR, directorId);
 	}
 
 	@Override
@@ -122,8 +133,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		String placeholders = String.join(",",
 				Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)")
 		);
-		String sql = "INSERT INTO GENRES_OF_FILMS (FILM_ID, GENRE_ID) VALUES" + placeholders;
+		String sql = SQL_FILMS_INSERT_GENREIDS + placeholders;
 		updateWithControl(sql, genreIds.toArray());
+	}
+
+	private void insertDirectorIds(Film film) {
+		Set<Integer> directorIds = film.getDirectorIds();
+		if (directorIds.isEmpty()) {
+			return;
+		}
+		String placeholders = String.join(",",
+				Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)")
+		);
+		String sql = SQL_FILMS_INSERT_DIRECTORIDS + placeholders;
+		updateWithControl(sql, directorIds.toArray());
 	}
 
 	private Collection<Film> findManyFilms(String query, Object... params) {
@@ -152,6 +175,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				if (!rs.wasNull() && film != null) {
 					film.addGenreId(genreId);
 				}
+
+				int directorId = rs.getInt("director_id");
+				if (!rs.wasNull() && film != null) {
+					film.addDirectorId(directorId);
+				}
 			}
 
 			return new ArrayList<>(films.values());
@@ -160,6 +188,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	private Set<Integer> getGenreIdsByFilmId(long filmId) {
 		return findColumnByQuery(SQL_FILMS_FIND_GENREIDS_BY_FILM_ID, Integer.class, filmId);
+	}
+
+	private Set<Integer> getDirectorIdsByFilmId(long filmId) {
+		return findColumnByQuery(SQL_FILMS_FIND_DIRECTORIDS_BY_FILM_ID, Integer.class, filmId);
 	}
 
 	@Override

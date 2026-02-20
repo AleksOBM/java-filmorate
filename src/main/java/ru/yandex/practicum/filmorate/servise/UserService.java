@@ -34,10 +34,11 @@ public class UserService {
 	private UserStorage userStorage;
 
 	@Autowired
-	private EventService eventService;
-
 	@Qualifier("filmDbStorage")
 	private FilmStorage filmStorage;
+
+	@Autowired
+	private EventService eventService;
 
 	@Autowired
 	private FilmService filmService;

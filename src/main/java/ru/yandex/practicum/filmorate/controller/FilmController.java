@@ -36,6 +36,14 @@ public class FilmController {
         return filmService.getTopFilms(count, genreId, year);
     }
 
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> findSortedFilmsOfDirector(
+            @PathVariable Integer directorId,
+            @RequestParam(required = false) String sortBy
+    ) {
+        return filmService.getSortedFilmsOfDirector(directorId, sortBy);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FilmDto create(@RequestBody @Valid FilmCreateRequest request) {

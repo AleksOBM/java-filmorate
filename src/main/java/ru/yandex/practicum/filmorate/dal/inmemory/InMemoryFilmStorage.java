@@ -68,6 +68,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
+	public Collection<Film> getALLFilmsOfDirector(Integer directorId) {
+		throw new MethodNotImplementedException();
+	}
+
+	@Override
 	public void setLike(long filmId, long userId) {
 		throw new MethodNotImplementedException();
 	}

@@ -34,6 +34,17 @@ CREATE TABLE genres_of_films (
     film_id bigint NOT NULL
 );
 
+CREATE TABLE directors (
+    id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    director_name varchar(70) NOT NULL
+);
+
+CREATE TABLE directors_of_films (
+    id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    director_id int NOT NULL,
+    film_id bigint NOT NULL
+);
+
 CREATE TABLE mpa (
     id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
     mpa_name varchar(5) NOT NULL
@@ -91,6 +102,12 @@ REFERENCES users (id);
 ALTER TABLE likes ADD CONSTRAINT fk_likes_film_id FOREIGN KEY(film_id)
 REFERENCES films (id);
 
+ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)
+REFERENCES directors (id);
+
+ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_film_id FOREIGN KEY(film_id)
+REFERENCES films (id);
+
 ALTER TABLE reviews ADD CONSTRAINT fk_reviews_user_id FOREIGN KEY (user_id)
 REFERENCES users (id) ON DELETE CASCADE;
 
@@ -117,6 +134,7 @@ CREATE INDEX IF NOT EXISTS idx_films_film_name ON films (film_name);
 
 CREATE INDEX IF NOT EXISTS idx_reviews_film_id ON reviews (film_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews (user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_directors_name ON directors (director_name);
 
 CREATE INDEX IF NOT EXISTS idx_review_likes_review_id ON review_likes (review_id);
 

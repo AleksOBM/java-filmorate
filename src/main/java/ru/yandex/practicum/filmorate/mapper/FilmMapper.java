@@ -2,11 +2,13 @@ package ru.yandex.practicum.filmorate.mapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.dto.request.create.FilmCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -28,10 +30,13 @@ public final class FilmMapper {
 				.genreIds(request.getGenres().stream()
 						.map(Genre::getId)
 						.collect(Collectors.toSet()))
+				.directorIds(request.getDirectors().stream()
+						.map(Director::getId)
+						.collect(Collectors.toSet()))
 				.build();
 	}
 
-	public static FilmDto mapToFilmDto(Film film, Mpa mpa, Set<Genre> genres) {
+	public static FilmDto mapToFilmDto(Film film, Mpa mpa, Set<Genre> genres, Set<Director> directors) {
 		return FilmDto.builder()
 				.id(film.getId())
 				.name(film.getName())
@@ -44,6 +49,11 @@ public final class FilmMapper {
 						.sorted(Comparator.comparing(Genre::getId))
 						.map(genre -> new GenreDto(genre.getId(), genre.getName()))
 						.toList())
+				.directors(directors.stream()
+						.sorted(Comparator.comparing(Director::getId))
+						.map(director -> new DirectorDto(director.getId(), director.getName()))
+						.toList()
+				)
 				.build();
 	}
 
@@ -72,6 +82,12 @@ public final class FilmMapper {
 		if (request.hasGenres()) {
 			film.setGenreIds(request.getGenres().stream()
 					.map(Genre::getId)
+					.collect(Collectors.toSet()));
+		}
+
+		if (request.hasDirectors()) {
+			film.setDirectorIds(request.getDirectors().stream()
+					.map(Director::getId)
 					.collect(Collectors.toSet()));
 		}
 
