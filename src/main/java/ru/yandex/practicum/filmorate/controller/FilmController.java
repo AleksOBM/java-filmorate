@@ -70,14 +70,11 @@ public class FilmController {
     public void deleteLike(@PathVariable long filmId, @PathVariable long userId) {
         filmService.changeLike(LikeAction.REMOVE, filmId, userId);
     }
-
-  add-search
     @GetMapping("/search")
-    public Collection<FilmDto> search(
-            @RequestParam String query,
-            @RequestParam String by
-    ) {
+    public Collection<FilmDto> search(@RequestParam String query, @RequestParam String by) {
         return filmService.search(query, by);
+    }
+
 
     @DeleteMapping("/{filmId}")
     public void deleteFilm(@PathVariable long filmId) {

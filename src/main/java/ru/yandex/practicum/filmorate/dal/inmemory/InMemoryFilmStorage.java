@@ -88,12 +88,10 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
- add-search
 	public Collection<Film> search(String query, String by) {
 		throw new ru.yandex.practicum.filmorate.exception.MethodNotImplementedException();
-
+	}
 	public void removeFilm(long filmId) {
 		throw new MethodNotImplementedException();
- develop
 	}
 }
