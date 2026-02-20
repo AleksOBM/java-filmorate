@@ -149,9 +149,16 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		}
 	}
 
+	@Override
+	public void removeFilm(long filmId) {
+		updateWithControl("DELETE FROM films WHERE id = ?", filmId);
+	}
+
 	private void insertGenreIds(Film film) {
 		Set<Integer> genreIds = film.getGenreIds();
-		if (genreIds.isEmpty()) return;
+		if (genreIds.isEmpty()) {
+			return;
+		}
 		String placeholders = String.join(",", Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)"));
 		String sql = SQL_FILMS_INSERT_GENREIDS + placeholders;
 		updateWithControl(sql, genreIds.toArray());
@@ -159,7 +166,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	private void insertDirectorIds(Film film) {
 		Set<Integer> directorIds = film.getDirectorIds();
-		if (directorIds.isEmpty()) return;
+		if (directorIds.isEmpty()) {
+			return;
+		}
 		String placeholders = String.join(",", Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)"));
 		String sql = SQL_FILMS_INSERT_DIRECTORIDS + placeholders;
 		updateWithControl(sql, directorIds.toArray());
@@ -179,11 +188,17 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 					}
 				});
 				long userId = rs.getLong("user_id");
-				if (!rs.wasNull() && film != null) film.addLike(userId);
+				if (!rs.wasNull() && film != null) {
+					film.addLike(userId);
+				}
 				int genreId = rs.getInt("genre_id");
-				if (!rs.wasNull() && film != null) film.addGenreId(genreId);
+				if (!rs.wasNull() && film != null) {
+					film.addGenreId(genreId);
+				}
 				int directorId = rs.getInt("director_id");
-				if (!rs.wasNull() && film != null) film.addDirectorId(directorId);
+				if (!rs.wasNull() && film != null) {
+					film.addDirectorId(directorId);
+				}
 			}
 			return new ArrayList<>(films.values());
 		}, params);
@@ -195,9 +210,5 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	private Set<Integer> getDirectorIdsByFilmId(long filmId) {
 		return findColumnByQuery(SQL_FILMS_FIND_DIRECTORIDS_BY_FILM_ID, Integer.class, filmId);
-	}
-	@Override
-	public void removeFilm(long filmId) {
-		updateWithControl("DELETE FROM films WHERE id = ?", filmId);
 	}
 }
