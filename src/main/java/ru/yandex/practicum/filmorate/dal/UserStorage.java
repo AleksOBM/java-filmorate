@@ -36,4 +36,7 @@ public interface UserStorage {
 
 	/// Получить список id друзей
 	Collection<Long> getFriendIds(long userId);
+
+	/// Удаление пользователя по id
+	void removeUser(long userId);
 }

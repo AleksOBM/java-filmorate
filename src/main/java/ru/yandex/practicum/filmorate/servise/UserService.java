@@ -118,6 +118,14 @@ public class UserService {
 		return UserMapper.mapToUserDto(newUser);
 	}
 
+	public void remove(long userId) {
+		log.info("Удаление пользователя с id={}.", userId);
+		if (userStorage.checkUserIsNotPresent(userId)) {
+			throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
+		}
+		userStorage.removeUser(userId);
+	}
+
 	public UserDto findUserDtoById(long userId) {
 		log.info("Поиск пользователя с id={}.", userId);
 		return UserMapper.mapToUserDto(findUser(userId));

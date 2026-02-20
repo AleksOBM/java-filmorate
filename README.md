@@ -49,7 +49,7 @@ The Filmorate project — это приложение для работы с б�
 - logback-classic 
 - logbook-spring-boot-starter
 ### Схема базы данных (Database map)
-![DatabaseMap](QuickDBD-FILMO_RATE.png "Database map:")
+![DatabaseMap](FILMO_RATE_DATABASE_MAP.png "Database map:")
 ### Примеры запросов к базе данных:
 1. Get TOP-10 films:
 ```sql

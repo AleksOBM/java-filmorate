@@ -5,7 +5,7 @@ CREATE TABLE users (
     user_name varchar(50),
     login varchar(50) NOT NULL,
     email varchar(50) NOT NULL,
-    birthday date   NOT NULL
+    birthday date NOT NULL
 );
 
 CREATE TABLE friends (
@@ -82,31 +82,31 @@ CREATE TABLE events (
 );
 
 ALTER TABLE friends ADD CONSTRAINT fk_friends_user_id FOREIGN KEY(user_id)
-REFERENCES users (id);
+REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE friends ADD CONSTRAINT fk_friends_friend_id FOREIGN KEY(friend_id)
-REFERENCES users (id);
+REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE films ADD CONSTRAINT fk_films_mpa_id FOREIGN KEY(mpa_id)
-REFERENCES mpa (id);
+REFERENCES mpa (id) ON DELETE SET NULL;
 
 ALTER TABLE genres_of_films ADD CONSTRAINT fk_genres_of_films_genre_id FOREIGN KEY(genre_id)
-REFERENCES genres (id);
+REFERENCES genres (id) ON DELETE CASCADE;
 
 ALTER TABLE genres_of_films ADD CONSTRAINT fk_genres_of_films_film_id FOREIGN KEY(film_id)
-REFERENCES films (id);
+REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE likes ADD CONSTRAINT fk_likes_user_id FOREIGN KEY(user_id)
-REFERENCES users (id);
+REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE likes ADD CONSTRAINT fk_likes_film_id FOREIGN KEY(film_id)
-REFERENCES films (id);
+REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)
-REFERENCES directors (id);
+REFERENCES directors (id) ON DELETE CASCADE;
 
 ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_film_id FOREIGN KEY(film_id)
-REFERENCES films (id);
+REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE reviews ADD CONSTRAINT fk_reviews_user_id FOREIGN KEY (user_id)
 REFERENCES users (id) ON DELETE CASCADE;
@@ -115,13 +115,13 @@ ALTER TABLE reviews ADD CONSTRAINT fk_reviews_film_id FOREIGN KEY (film_id)
 REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE review_likes ADD CONSTRAINT fk_review_likes_review_id FOREIGN KEY (review_id)
-REFERENCES reviews (id);
+REFERENCES reviews (id) ON DELETE CASCADE;
 
 ALTER TABLE review_likes ADD CONSTRAINT fk_review_likes_user_id FOREIGN KEY (user_id)
-REFERENCES users (id);
+REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE events ADD CONSTRAINT fk_events_user_id FOREIGN KEY(user_id)
-REFERENCES users (id);
+REFERENCES users (id) ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS idx_users_user_name ON users (user_name);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);

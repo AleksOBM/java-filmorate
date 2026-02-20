@@ -221,6 +221,14 @@ public class FilmService {
 		return FilmMapper.mapToFilmDto(newFilm, mpa, filmGenres, filmDirectors);
 	}
 
+	public void remove(long filmId) {
+		log.info("Удаление фильма с id={}", filmId);
+		if (filmStorage.checkFilmIsNotPresent(filmId)) {
+			throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+		}
+		filmStorage.removeFilm(filmId);
+	}
+
 	private Mpa validateMpa(Film film) {
 		log.trace("Проверка рейтинга MPAA");
 		int mpaId = film.getMpaId();

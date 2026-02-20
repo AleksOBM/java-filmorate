@@ -71,4 +71,9 @@ public class UserController {
 	public Collection<FilmDto> getRecommendations(@PathVariable long id) {
 		return userService.getRecommendations(id);
 	}
+
+	@DeleteMapping("/{userId}")
+	public void deleteUser(@PathVariable long userId) {
+		userService.remove(userId);
+	}
 }

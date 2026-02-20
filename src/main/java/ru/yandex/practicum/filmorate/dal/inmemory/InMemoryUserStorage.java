@@ -73,4 +73,9 @@ public class InMemoryUserStorage implements UserStorage {
 		throw new MethodNotImplementedException();
 	}
 
+	@Override
+	public void removeUser(long userId) {
+		throw new MethodNotImplementedException();
+	}
+
 }

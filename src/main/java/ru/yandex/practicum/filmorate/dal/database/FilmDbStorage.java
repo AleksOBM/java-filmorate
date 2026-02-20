@@ -215,6 +215,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	}
 
 	@Override
+
+  add-search
 	public Collection<Film> search(String query, String by) {
 		String searchPattern = "%" + query.toLowerCase() + "%";
 		String condition;
@@ -229,5 +231,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 			condition = "LOWER(f.film_name) LIKE ?";
 			return findManyFilms(String.format(SQL_FILMS_SEARCH, condition), searchPattern);
 		}
+
+	public void removeFilm(long filmId) {
+		updateWithControl("DELETE FROM films WHERE id = ?", filmId);
+ develop
 	}
 }

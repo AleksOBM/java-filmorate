@@ -98,6 +98,11 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 	}
 
 	@Override
+	public void removeUser(long userId) {
+		updateWithControl("DELETE FROM users WHERE id = ?", userId);
+	}
+
+	@Override
 	public boolean checkUserIsNotPresent(Long userId) {
 		return checkIdIsNotPresentInTable(userId, "users");
 	}

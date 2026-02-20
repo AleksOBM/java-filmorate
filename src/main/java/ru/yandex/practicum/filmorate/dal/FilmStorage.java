@@ -44,5 +44,10 @@ public interface FilmStorage {
 
 	Collection<Film> getCommonLikedFilms(long userId, long friendId);
 
+  add-search
 	Collection<Film> search(String query, String by);
+
+	/// Удаление фильма по id
+	void removeFilm(long filmId);
+
 }
