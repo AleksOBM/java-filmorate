@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Data
 public class UserCreateRequest {
 
-    @Size(min = 2, max = 50, message = "Длина имени пользователя может быть от 2 до 50 символов.")
+    @Size(max = 50, message = "Длина имени пользователя не может быть больше 50 символов.")
     private String name;
 
     @NotNull(message = "Логин должен быть указан.")
