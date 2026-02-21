@@ -159,9 +159,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	private void insertGenreIds(Film film) {
 		Set<Integer> genreIds = film.getGenreIds();
 		if (genreIds.isEmpty()) {
+			jdbc.update("DELETE FROM genres_of_films WHERE film_id = ?", film.getId());
 			return;
 		}
-		String placeholders = String.join(",", Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)"));
+		jdbc.update("DELETE FROM genres_of_films WHERE film_id = ?", film.getId());
+		String placeholders = String.join(
+				",", Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)")
+		);
 		String sql = SQL_FILMS_INSERT_GENREIDS + placeholders;
 		updateWithControl(sql, genreIds.toArray());
 	}
@@ -169,9 +173,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	private void insertDirectorIds(Film film) {
 		Set<Integer> directorIds = film.getDirectorIds();
 		if (directorIds.isEmpty()) {
+			jdbc.update("DELETE FROM directors_of_films WHERE film_id = ?", film.getId());
 			return;
 		}
-		String placeholders = String.join(",", Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)"));
+		jdbc.update("DELETE FROM directors_of_films WHERE film_id = ?", film.getId());
+		String placeholders = String.join(
+				",", Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)")
+		);
 		String sql = SQL_FILMS_INSERT_DIRECTORIDS + placeholders;
 		updateWithControl(sql, directorIds.toArray());
 	}
