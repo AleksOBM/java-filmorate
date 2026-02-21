@@ -268,9 +268,8 @@ public class FilmService {
 				.filter(id -> !allDirectorIds.containsKey(id))
 				.toList();
 		if (!badDirectorIds.isEmpty()) {
-			throw new NotFoundException("Жанры с id " + badDirectorIds + " не найдены.");
+			throw new NotFoundException("Режиссеры с id " + badDirectorIds + " не найдены.");
 		}
-
 
 		HashSet<Director> dirs = new HashSet<>();
 		for (Integer id : directorIds) {
