@@ -90,6 +90,10 @@ public class UserService {
 
 	public UserDto create(UserCreateRequest request) {
 		log.info("Добавление нового пользователя login={}.", request.getLogin());
+		if (request.getName().isBlank()) {
+			request.setName(request.getLogin());
+		}
+
 		User user = UserMapper.mapToUser(request);
 
 		try {
@@ -103,6 +107,10 @@ public class UserService {
 
 	public UserDto update(UserUpdateRequest request) {
 		log.info("Обновление данных о пользователе с id={}.", request.getId());
+		if (request.getName().isBlank()) {
+			request.setName(request.getLogin());
+		}
+
 		User oldUser = findUser(request.getId());
 		logUserUpdate(request, oldUser);
 		User newUser = UserMapper.updateUserFields(oldUser, request);
