@@ -51,4 +51,5 @@ public interface FilmStorage {
 	/// Удаление фильма по id
 	void removeFilm(long filmId);
 
+	Collection<Film> getFilmsByIds(Collection<Long> ids);
 }

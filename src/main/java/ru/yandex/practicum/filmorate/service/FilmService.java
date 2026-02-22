@@ -354,4 +354,18 @@ public class FilmService {
 				))
 				.toList();
 	}
+
+	public Collection<FilmDto> getFilmsByIds(Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return filmStorage.getFilmsByIds(ids).stream()
+				.map(film -> FilmMapper.mapToFilmDto(
+						film,
+						mpas.get(film.getMpaId()),
+						getGenresByIds(film.getGenreIds()),
+						getDirectorsByIds(film.getDirectorIds())
+				))
+				.toList();
+	}
 }

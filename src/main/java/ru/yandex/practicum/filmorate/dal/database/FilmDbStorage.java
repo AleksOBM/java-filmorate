@@ -39,7 +39,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		film.setId(id);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return film;
+		return findById(id).get();
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return film;
+		return findById(film.getId()).get();
 	}
 
 	@Override
@@ -157,29 +157,19 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	}
 
 	private void insertGenreIds(Film film) {
-		Set<Integer> genreIds = film.getGenreIds();
-		if (genreIds.isEmpty()) {
-			jdbc.update("DELETE FROM genres_of_films WHERE film_id = ?", film.getId());
-			return;
-		}
 		jdbc.update("DELETE FROM genres_of_films WHERE film_id = ?", film.getId());
-		String placeholders = String.join(
-				",", Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)")
-		);
+		Set<Integer> genreIds = film.getGenreIds();
+		if (genreIds == null || genreIds.isEmpty()) return;
+		String placeholders = String.join(",", Collections.nCopies(genreIds.size(), " (" + film.getId() + ", ?)"));
 		String sql = SQL_FILMS_INSERT_GENREIDS + placeholders;
 		updateWithControl(sql, genreIds.toArray());
 	}
 
 	private void insertDirectorIds(Film film) {
-		Set<Integer> directorIds = film.getDirectorIds();
-		if (directorIds.isEmpty()) {
-			jdbc.update("DELETE FROM directors_of_films WHERE film_id = ?", film.getId());
-			return;
-		}
 		jdbc.update("DELETE FROM directors_of_films WHERE film_id = ?", film.getId());
-		String placeholders = String.join(
-				",", Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)")
-		);
+		Set<Integer> directorIds = film.getDirectorIds();
+		if (directorIds == null || directorIds.isEmpty()) return;
+		String placeholders = String.join(",", Collections.nCopies(directorIds.size(), " (" + film.getId() + ", ?)"));
 		String sql = SQL_FILMS_INSERT_DIRECTORIDS + placeholders;
 		updateWithControl(sql, directorIds.toArray());
 	}
@@ -198,17 +188,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 					}
 				});
 				long userId = rs.getLong("user_id");
-				if (!rs.wasNull() && film != null) {
-					film.addLike(userId);
-				}
+				if (!rs.wasNull() && film != null) film.addLike(userId);
 				int genreId = rs.getInt("genre_id");
-				if (!rs.wasNull() && film != null) {
-					film.addGenreId(genreId);
-				}
+				if (!rs.wasNull() && film != null) film.addGenreId(genreId);
 				int directorId = rs.getInt("director_id");
-				if (!rs.wasNull() && film != null) {
-					film.addDirectorId(directorId);
-				}
+				if (!rs.wasNull() && film != null) film.addDirectorId(directorId);
 			}
 			return new ArrayList<>(films.values());
 		}, params);
@@ -220,5 +204,26 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	private Set<Integer> getDirectorIdsByFilmId(long filmId) {
 		return findColumnByQuery(SQL_FILMS_FIND_DIRECTORIDS_BY_FILM_ID, Integer.class, filmId);
+	}
+
+	@Override
+	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+
+		String sql = String.format("""
+                SELECT f.id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id,
+                       l.user_id, gof.genre_id, dof.director_id
+                FROM films f
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN genres_of_films gof ON f.id = gof.film_id
+                LEFT JOIN directors_of_films dof ON f.id = dof.film_id
+                WHERE f.id IN (%s)
+                """, inSql);
+
+		return findManyFilms(sql, ids.toArray());
 	}
 }

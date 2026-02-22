@@ -82,4 +82,9 @@ public class InMemoryFilmStorage implements FilmStorage {
 	public void removeFilm(long filmId) {
 		throw new MethodNotImplementedException();
 	}
+
+	@Override
+	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
+		throw new MethodNotImplementedException();
+	}
 }

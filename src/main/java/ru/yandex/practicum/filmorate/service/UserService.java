@@ -206,7 +206,6 @@ public class UserService {
 		log.info("Данные для обновления: [{}]", updatedData);
 	}
 
-	// Рекомендации
 	public Collection<FilmDto> getRecommendations(long userId) {
 		log.info("Получение рекомендаций для пользователя id={}.", userId);
 		easyCheckUser(userId);
@@ -218,8 +217,7 @@ public class UserService {
 			return Collections.emptyList();
 		}
 
-		long similarUserId = -1;
-		int maxOverlap = 0;
+		Map<Long, Integer> similarityMap = new HashMap<>();
 
 		for (Map.Entry<Long, Set<Long>> entry : allLikes.entrySet()) {
 			long otherUserId = entry.getKey();
@@ -230,20 +228,33 @@ public class UserService {
 					.filter(otherUserLikes::contains)
 					.count();
 
-			if (overlap > maxOverlap) {
-				maxOverlap = overlap;
-				similarUserId = otherUserId;
+			if (overlap > 0) {
+				similarityMap.put(otherUserId, overlap);
 			}
 		}
 
-		if (similarUserId == -1) {
+		if (similarityMap.isEmpty()) {
 			return Collections.emptyList();
 		}
 
-		Set<Long> similarUserLikes = allLikes.get(similarUserId);
-		return similarUserLikes.stream()
-				.filter(filmId -> !targetUserLikes.contains(filmId))
-				.map(filmService::findById)
+		List<Long> similarUserIds = similarityMap.entrySet().stream()
+				.sorted(Map.Entry.<Long, Integer>comparingByValue().reversed())
+				.limit(15)
+				.map(Map.Entry::getKey)
 				.collect(Collectors.toList());
+
+		Set<Long> recommendedFilmIds = new HashSet<>();
+		for (Long simId : similarUserIds) {
+			Set<Long> likedBySimilarUser = allLikes.get(simId);
+			likedBySimilarUser.stream()
+					.filter(filmId -> !targetUserLikes.contains(filmId))
+					.forEach(recommendedFilmIds::add);
+		}
+
+		if (recommendedFilmIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		return filmService.getFilmsByIds(recommendedFilmIds);
 	}
 }
