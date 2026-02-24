@@ -9,6 +9,7 @@ public class FilmQueryes {
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
+					  mrg.ASSESSMENT,
 			          gof.GENRE_ID,
 					  dof.DIRECTOR_ID,
 			          user_id
@@ -19,6 +20,7 @@ public class FilmQueryes {
 			                    RELEASE_DATE,
 			                    DURATION,
 			                    MPA_ID,
+						        f.ASSESSMENT,
 			                    l.USER_ID
 			          FROM      FILMS f
 			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
@@ -35,6 +37,7 @@ public class FilmQueryes {
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
+					  mrg.ASSESSMENT,
 			          gof.GENRE_ID,
 			          dof.DIRECTOR_ID,
 			          user_id
@@ -45,6 +48,7 @@ public class FilmQueryes {
 			                    RELEASE_DATE,
 			                    DURATION,
 			                    MPA_ID,
+						        f.ASSESSMENT,
 			                    l.USER_ID
 			          FROM      FILMS f
 			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
@@ -129,6 +133,12 @@ public class FilmQueryes {
 			WHERE     dof.FILM_ID = ?
 			""";
 
+	public static final String SQL_FILMS_FIND_LIKES_BY_FILM_ID = """
+			SELECT    *
+			FROM      ASSESSMENTS
+			WHERE     FILM_ID = ?
+			""";
+
 	public static final String SQL_FILMS_INSERT_DIRECTORIDS = """
 			MERGE INTO DIRECTORS_OF_FILMS (FILM_ID, DIRECTOR_ID) KEY (FILM_ID, DIRECTOR_ID) VALUES
 			""";
@@ -139,9 +149,10 @@ public class FilmQueryes {
 			       description,
 			       release_date,
 			       duration,
-			       mpa_id
+			       mpa_id,
+				   assessment
 			       )
-			VALUES (?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?)
 			""";
 
 	public static final String SQL_FILMS_UPDATE = """
@@ -150,7 +161,8 @@ public class FilmQueryes {
 			       description = ?,
 			       release_date = ?,
 			       duration = ?,
-			       mpa_id = ?
+			       mpa_id = ?,
+				   assessment = ?
 			 WHERE id = ?
 			""";
 

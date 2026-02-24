@@ -7,12 +7,17 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.dal.rowmappers.LikeRowMapper;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+import ru.yandex.practicum.filmorate.model.Assessment;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
 
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.dal.database.sql.FilmQueryes.*;
 
@@ -34,7 +39,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getDescription(),
 				film.getReleaseDate(),
 				film.getDuration().toMinutes(),
-				film.getMpaId()
+				film.getMpaId(),
+				film.getAverageAssessment()
 		);
 		film.setId(id);
 		insertGenreIds(film);
@@ -52,6 +58,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getReleaseDate(),
 				film.getDuration().toMinutes(),
 				film.getMpaId(),
+				film.getAverageAssessment(),
 				film.getId()
 		);
 		insertGenreIds(film);
@@ -65,7 +72,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		Optional<Film> filmOptional = findOneByIdInTable(filmId, "films");
 		filmOptional.ifPresent(film -> film.setGenreIds(getGenreIdsByFilmId(filmId)));
 		filmOptional.ifPresent(film -> film.setDirectorIds(getDirectorIdsByFilmId(filmId)));
+		filmOptional.ifPresent(film -> film.setAssessments(getLikesByFilmId(filmId)));
 		return filmOptional;
+	}
+
+	private Set<Like> getLikesByFilmId(long filmId) {
+		return jdbc.query(SQL_FILMS_FIND_LIKES_BY_FILM_ID, new LikeRowMapper(), filmId).stream()
+				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	@Override
@@ -193,6 +206,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				if (!rs.wasNull() && film != null) film.addGenreId(genreId);
 				int directorId = rs.getInt("director_id");
 				if (!rs.wasNull() && film != null) film.addDirectorId(directorId);
+				float assessment = rs.getFloat("assessment");
+				if (!rs.wasNull() && film != null) film.setAverageAssessment(assessment);
 			}
 			return new ArrayList<>(films.values());
 		}, params);
@@ -226,4 +241,31 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 		return findManyFilms(sql, ids.toArray());
 	}
+
+	@Transactional
+	@Override
+	public Like createLike(long filmId, int assessmentValue, long userId) {
+		long likeId = insertWithKeyHolder(
+				"INSERT INTO assessments (film_id, user_id, assessment) VALUES (?, ?, ?)",
+				filmId,
+				userId,
+				assessmentValue
+		);
+		updateAverageAssessment(filmId);
+		return Like.builder()
+				.id(likeId)
+				.assessment(Assessment.of(assessmentValue))
+				.userId(userId)
+				.build();
+	}
+
+	private void updateAverageAssessment(long filmId) {
+		Optional<Film> optionalFilm = findOneByIdInTable(filmId, "films");
+		optionalFilm.ifPresent(film -> {
+			film.setAssessments(getLikesByFilmId(filmId));
+			film.getAverageAssessment();
+			updateFilm(film);
+		});
+	}
+
 }

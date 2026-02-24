@@ -18,10 +18,7 @@ import ru.yandex.practicum.filmorate.dal.rowmappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -307,6 +304,19 @@ class FilmoRateApplicationTests {
 					.contains(film2, film3)
 					.doesNotContain(film1)
 					.hasSize(4);
+		}
+
+		@Test
+		void likes2() {
+//			Assessment assessment1 = Assessment.of(3);
+//			Assessment assessment2 = Assessment.of(4);
+//			Assessment assessment3 = Assessment.of(7);
+//			Assessment assessment4 = Assessment.of(999);
+//
+//			Film film1 = addRandomFilm();
+//			film1.setAssessments(Set.of(assessment1, assessment2, assessment3, assessment4));
+//
+//			assertThat(film1.getAverageAssessment()).isEqualTo(4.67f);
 		}
 
 		@Test

@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import ru.yandex.practicum.filmorate.model.Assessment;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.Collection;
 import java.util.Map;
@@ -52,4 +54,6 @@ public interface FilmStorage {
 	void removeFilm(long filmId);
 
 	Collection<Film> getFilmsByIds(Collection<Long> ids);
+
+	Like createLike(long filmId, int assessmentValue, long userId);
 }
