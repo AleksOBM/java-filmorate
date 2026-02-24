@@ -24,6 +24,9 @@ public class FilmDto {
 	@JsonProperty("rate")
 	int likesCount;
 
+	@JsonProperty("assessment")
+	float averageAssessment;
+
 	@Builder.Default
 	private MpaDto mpa = new MpaDto();
 

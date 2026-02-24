@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.request.create.FilmCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
+import ru.yandex.practicum.filmorate.exception.MethodNotImplementedException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ParameterNotValidException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -367,5 +368,32 @@ public class FilmService {
 						getDirectorsByIds(film.getDirectorIds())
 				))
 				.toList();
+	}
+
+	public void changeAssessment(LikeAction likeAction, long filmId, int assessmentValue, long userId) {
+
+		if (Assessment.of(assessmentValue).equals(Assessment.UNDEFINED)) {
+			throw new ParameterNotValidException("assessment = " + assessmentValue +
+					".", "Значение должно быть от 1 до 10");
+		}
+		easyCheckFilm(filmId);
+		easyCheckUser(userId);
+
+		switch (likeAction) {
+			case SET -> filmStorage.createLike(filmId, assessmentValue, userId);
+			case REMOVE -> throw new MethodNotImplementedException();
+		}
+	}
+
+	private void easyCheckFilm(long filmId) {
+		if (filmStorage.checkFilmIsNotPresent(filmId)) {
+			throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+		}
+	}
+
+	private void easyCheckUser(long userId) {
+		if (userStorage.checkUserIsNotPresent(userId)) {
+			throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
+		}
 	}
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.request.create.FilmCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
+import ru.yandex.practicum.filmorate.model.Assessment;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.util.LikeAction;
 
@@ -64,6 +65,11 @@ public class FilmController {
 	@PutMapping
 	public FilmDto update(@RequestBody FilmUpdateRequest request) {
 		return filmService.update(request);
+	}
+
+	@PutMapping("/{filmId}/assessment/{assessment}/user/{userId}")
+	public void setAssessment(@PathVariable long filmId,@PathVariable int assessment, @PathVariable long userId) {
+		filmService.changeAssessment(LikeAction.SET, filmId, assessment, userId);
 	}
 
 	@PutMapping("/{filmId}/like/{userId}")

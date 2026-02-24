@@ -20,7 +20,8 @@ CREATE TABLE films (
     description varchar(200) NOT NULL,
     release_date date NOT NULL,
     duration int NOT NULL,
-    mpa_id int NOT NULL
+    mpa_id int NOT NULL,
+    assessment real
 );
 
 CREATE TABLE genres (
@@ -54,6 +55,13 @@ CREATE TABLE likes (
     id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id bigint NOT NULL,
     film_id bigint NOT NULL
+);
+
+CREATE TABLE assessments (
+    id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    film_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    assessment int NOT NULL
 );
 
 CREATE TABLE reviews (
@@ -100,6 +108,12 @@ ALTER TABLE likes ADD CONSTRAINT fk_likes_user_id FOREIGN KEY(user_id)
 REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE likes ADD CONSTRAINT fk_likes_film_id FOREIGN KEY(film_id)
+REFERENCES films (id) ON DELETE CASCADE;
+
+ALTER TABLE assessments ADD CONSTRAINT fk_assessments_user_id FOREIGN KEY(user_id)
+REFERENCES users (id) ON DELETE CASCADE;
+
+ALTER TABLE assessments ADD CONSTRAINT fk_assessments_film_id FOREIGN KEY(film_id)
 REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)

@@ -54,6 +54,7 @@ public final class FilmMapper {
 						.map(director -> new DirectorDto(director.getId(), director.getName()))
 						.toList()
 				)
+				.averageAssessment(film.getAverageAssessment())
 				.build();
 	}
 
@@ -86,6 +87,8 @@ public final class FilmMapper {
 		film.setDirectorIds(request.getDirectors().stream()
 				.map(Director::getId)
 				.collect(Collectors.toSet()));
+
+		film.getAverageAssessment();
 
 		return film;
 	}
