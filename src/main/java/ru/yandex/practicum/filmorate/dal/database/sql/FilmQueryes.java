@@ -2,6 +2,23 @@ package ru.yandex.practicum.filmorate.dal.database.sql;
 
 public class FilmQueryes {
 
+	public static final String SQL_FILMS_GET_BY_IDS = """
+			SELECT    f.id,
+			          f.film_name,
+			          f.description,
+			          f.release_date,
+			          f.duration,
+			          f.mpa_id,
+			          l.user_id,
+			          gof.genre_id,
+			          dof.director_id
+			FROM      films f
+			LEFT JOIN likes l ON f.id = l.film_id
+			LEFT JOIN genres_of_films gof ON f.id = gof.film_id
+			LEFT JOIN directors_of_films dof ON f.id = dof.film_id
+			WHERE     f.id IN (%s)
+			""";
+
 	public static final String SQL_FILMS_FIND_ALL = """
 			SELECT    mrg.id,
 			          mrg.FILM_NAME,
@@ -9,7 +26,7 @@ public class FilmQueryes {
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
-					  mrg.ASSESSMENT,
+					  mrg.RATE,
 			          gof.GENRE_ID,
 					  dof.DIRECTOR_ID,
 			          user_id
@@ -20,7 +37,7 @@ public class FilmQueryes {
 			                    RELEASE_DATE,
 			                    DURATION,
 			                    MPA_ID,
-						        f.ASSESSMENT,
+						        f.RATE,
 			                    l.USER_ID
 			          FROM      FILMS f
 			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
@@ -37,7 +54,7 @@ public class FilmQueryes {
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
-					  mrg.ASSESSMENT,
+					  mrg.RATE,
 			          gof.GENRE_ID,
 			          dof.DIRECTOR_ID,
 			          user_id
@@ -48,7 +65,7 @@ public class FilmQueryes {
 			                    RELEASE_DATE,
 			                    DURATION,
 			                    MPA_ID,
-						        f.ASSESSMENT,
+						        f.RATE,
 			                    l.USER_ID
 			          FROM      FILMS f
 			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
@@ -68,45 +85,28 @@ public class FilmQueryes {
 			""";
 
 	public static final String SQL_FILMS_FIND_TOP = """
-			SELECT    mrg.id,
+			SELECT    mrg.ID,
 			          mrg.FILM_NAME,
 			          mrg.DESCRIPTION,
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
-			          gof.GENRE_ID,
-					  dof.DIRECTOR_ID,
-			          user_id
+			          mrg.RATE,
+			          dof.DIRECTOR_ID,
+			          gof.GENRE_ID
 			FROM      (
-			          SELECT    f.ID,
-			                    f.FILM_NAME,
-			                    DESCRIPTION,
-			                    RELEASE_DATE,
-			                    DURATION,
-			                    MPA_ID,
-			                    l.USER_ID
-			          FROM      FILMS f
-			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
+			          SELECT    *
+			          FROM      FILMS flm
+			          ORDER BY  RATE DESC
+			          LIMIT     ?
 			          ) AS mrg
 			LEFT JOIN GENRES_OF_FILMS gof ON mrg.id = gof.FILM_ID
-			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.ID = dof.FILM_ID
-			WHERE     mrg.id IN (
-			          SELECT    rte.ID
-			          FROM      (
-			                    SELECT    flm.*,
-			                              COUNT(lks.ID) AS rate
-			                    FROM      FILMS flm
-			                    LEFT JOIN LIKES lks ON flm.ID = lks.FILM_ID
-			                    GROUP BY  flm.ID
-			                    ) AS rte
-			          ORDER BY  rate DESC, rte.ID
-			          LIMIT     ?
-			          )
+			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.ID = dof.FILM_ID;
 			""";
 
 	public static final String SQL_FILMS_SET_LIKE = """
-			INSERT    INTO LIKES (FILM_ID, USER_ID)
-			VALUES    (?, ?)
+			INSERT    INTO LIKES (FILM_ID, USER_ID, ASSESSMENT)
+			VALUES    (?, ?, ?)
 			""";
 
 	public static final String SQL_FILMS_DELETE_LIKE = """
@@ -135,7 +135,7 @@ public class FilmQueryes {
 
 	public static final String SQL_FILMS_FIND_LIKES_BY_FILM_ID = """
 			SELECT    *
-			FROM      ASSESSMENTS
+			FROM      LIKES
 			WHERE     FILM_ID = ?
 			""";
 
@@ -150,7 +150,7 @@ public class FilmQueryes {
 			       release_date,
 			       duration,
 			       mpa_id,
-				   assessment
+				   rate
 			       )
 			VALUES (?, ?, ?, ?, ?, ?)
 			""";
@@ -161,8 +161,7 @@ public class FilmQueryes {
 			       description = ?,
 			       release_date = ?,
 			       duration = ?,
-			       mpa_id = ?,
-				   assessment = ?
+			       mpa_id = ?
 			 WHERE id = ?
 			""";
 

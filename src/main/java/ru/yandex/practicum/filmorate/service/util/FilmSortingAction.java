@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum FilmSortingAction {
-	YEAR, LIKES, UNDEFINED;
+	UNDEFINED, YEAR, RATE;
 
 	@Getter
 	private String sortingName;

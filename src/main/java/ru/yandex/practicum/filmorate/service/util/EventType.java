@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.service.util;
 
-public enum LikeAction {
-	SET, RATE, REMOVE
+public enum EventType {
+	LIKE,
+	REVIEW,
+	FRIEND
 }

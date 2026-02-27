@@ -51,7 +51,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public void setLike(long filmId, long userId) {
+	public Like createLike(long filmId, long userId, Assessment assessment) {
 		throw new MethodNotImplementedException();
 	}
 
@@ -66,7 +66,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public Map<Long, Set<Long>> getAllLikes() {
+	public Set<Like> getAllLikes() {
 		throw new MethodNotImplementedException();
 	}
 
@@ -90,8 +90,4 @@ public class InMemoryFilmStorage implements FilmStorage {
 		throw new MethodNotImplementedException();
 	}
 
-	@Override
-	public Like createLike(long filmId, int assessmentValue, long userId) {
-		throw new MethodNotImplementedException();
-	}
 }

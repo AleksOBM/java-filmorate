@@ -14,8 +14,9 @@ import ru.yandex.practicum.filmorate.dto.request.create.UserCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.UserUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.service.util.EventType;
+import ru.yandex.practicum.filmorate.service.util.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.util.FriendsAction;
 
@@ -210,8 +211,14 @@ public class UserService {
 		log.info("Получение рекомендаций для пользователя id={}.", userId);
 		easyCheckUser(userId);
 
-		Map<Long, Set<Long>> allLikes = filmStorage.getAllLikes();
-		Set<Long> targetUserLikes = allLikes.getOrDefault(userId, Collections.emptySet());
+		Set<Like> likes = filmStorage.getAllLikes();
+
+		Map<Long, Set<Long>> userTofilmsLikes = new HashMap<>();
+		likes.forEach(like ->
+				userTofilmsLikes.computeIfAbsent(like.getUserId(), k -> new HashSet<>()).add(like.getFilmId())
+		);
+
+		Set<Long> targetUserLikes = userTofilmsLikes.getOrDefault(userId, Collections.emptySet());
 
 		if (targetUserLikes.isEmpty()) {
 			return Collections.emptyList();
@@ -219,7 +226,7 @@ public class UserService {
 
 		Map<Long, Integer> similarityMap = new HashMap<>();
 
-		for (Map.Entry<Long, Set<Long>> entry : allLikes.entrySet()) {
+		for (Map.Entry<Long, Set<Long>> entry : userTofilmsLikes.entrySet()) {
 			long otherUserId = entry.getKey();
 			if (otherUserId == userId) continue;
 
@@ -245,7 +252,7 @@ public class UserService {
 
 		Set<Long> recommendedFilmIds = new HashSet<>();
 		for (Long simId : similarUserIds) {
-			Set<Long> likedBySimilarUser = allLikes.get(simId);
+			Set<Long> likedBySimilarUser = userTofilmsLikes.get(simId);
 			likedBySimilarUser.stream()
 					.filter(filmId -> !targetUserLikes.contains(filmId))
 					.forEach(recommendedFilmIds::add);

@@ -8,8 +8,8 @@ import ru.yandex.practicum.filmorate.dal.EventStorage;
 import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.service.util.EventType;
+import ru.yandex.practicum.filmorate.service.util.Operation;
 
 import java.time.Instant;
 import java.util.Collection;

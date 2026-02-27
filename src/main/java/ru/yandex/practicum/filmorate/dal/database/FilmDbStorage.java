@@ -40,12 +40,12 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getReleaseDate(),
 				film.getDuration().toMinutes(),
 				film.getMpaId(),
-				film.getAverageAssessment()
+				0.0f
 		);
 		film.setId(id);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return findById(id).get();
+		return film;
 	}
 
 	@Override
@@ -58,21 +58,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getReleaseDate(),
 				film.getDuration().toMinutes(),
 				film.getMpaId(),
-				film.getAverageAssessment(),
 				film.getId()
 		);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return findById(film.getId()).get();
+		return film;
 	}
 
 	@Override
 	@Transactional
 	public Optional<Film> findById(long filmId) {
 		Optional<Film> filmOptional = findOneByIdInTable(filmId, "films");
-		filmOptional.ifPresent(film -> film.setGenreIds(getGenreIdsByFilmId(filmId)));
-		filmOptional.ifPresent(film -> film.setDirectorIds(getDirectorIdsByFilmId(filmId)));
-		filmOptional.ifPresent(film -> film.setAssessments(getLikesByFilmId(filmId)));
+		filmOptional.ifPresent(film -> {
+			film.setGenreIds(getGenreIdsByFilmId(filmId));
+			film.setDirectorIds(getDirectorIdsByFilmId(filmId));
+			film.setRate(calculateRating(getLikesByFilmId(filmId)));
+		});
+
 		return filmOptional;
 	}
 
@@ -86,9 +88,24 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return findManyFilms(SQL_FILMS_FIND_ALL);
 	}
 
+	@Transactional
 	@Override
-	public void setLike(long filmId, long userId) {
-		updateWithControl(SQL_FILMS_SET_LIKE, filmId, userId);
+	public Like createLike(long filmId, long userId, Assessment assessment) {
+		long likeId = insertWithKeyHolder(
+				SQL_FILMS_SET_LIKE,
+				filmId,
+				userId,
+				assessment.getValue()
+		);
+
+		float rate = calculateRating(getLikesByFilmId(filmId));
+		jdbc.update("UPDATE films SET rate = ?", rate);
+
+		return Like.builder()
+				.id(likeId)
+				.assessment(assessment)
+				.userId(userId)
+				.build();
 	}
 
 	@Override
@@ -132,18 +149,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	}
 
 	@Override
-	public Map<Long, Set<Long>> getAllLikes() {
-		String sql = "SELECT user_id, film_id FROM likes";
-		Map<Long, Set<Long>> allLikes = new HashMap<>();
-		jdbc.query(sql, (rs) -> {
-			long userId = rs.getLong("user_id");
-			long filmId = rs.getLong("film_id");
-			allLikes.computeIfAbsent(userId, k -> new HashSet<>()).add(filmId);
-		});
-		return allLikes;
-	}
-
-	@Override
 	public Collection<Film> getCommonLikedFilms(long userId, long friendId) {
 		return findManyFilms(SQL_FILMS_FIND_COMMON_LIKED, userId, friendId);
 	}
@@ -167,6 +172,32 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	@Override
 	public void removeFilm(long filmId) {
 		updateWithControl("DELETE FROM films WHERE id = ?", filmId);
+	}
+
+	@Override
+	public Set<Like> getAllLikes() {
+		String sql = "SELECT user_id, film_id, assessment FROM likes";
+		Set<Like> allLikes = new HashSet<>();
+		jdbc.query(sql, (rs) -> {
+			long filmId = rs.getLong("film_id");
+			long userId = rs.getLong("user_id");
+			int assessment = rs.getInt("assessment");
+			Like like = Like.builder().filmId(filmId).userId(userId).assessment(Assessment.of(assessment)).build();
+			allLikes.add(like);
+		});
+		return allLikes;
+	}
+
+	@Override
+	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+		String sql = String.format(SQL_FILMS_GET_BY_IDS, inSql);
+
+		return findManyFilms(sql, ids.toArray());
 	}
 
 	private void insertGenreIds(Film film) {
@@ -200,14 +231,10 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 						throw new InternalServerException("Не удалось получить все фильмы из базы.\n" + e.getMessage());
 					}
 				});
-				long userId = rs.getLong("user_id");
-				if (!rs.wasNull() && film != null) film.addLike(userId);
 				int genreId = rs.getInt("genre_id");
 				if (!rs.wasNull() && film != null) film.addGenreId(genreId);
 				int directorId = rs.getInt("director_id");
 				if (!rs.wasNull() && film != null) film.addDirectorId(directorId);
-				float assessment = rs.getFloat("assessment");
-				if (!rs.wasNull() && film != null) film.setAverageAssessment(assessment);
 			}
 			return new ArrayList<>(films.values());
 		}, params);
@@ -221,51 +248,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return findColumnByQuery(SQL_FILMS_FIND_DIRECTORIDS_BY_FILM_ID, Integer.class, filmId);
 	}
 
-	@Override
-	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
-		if (ids == null || ids.isEmpty()) {
-			return Collections.emptyList();
+	private float calculateRating(Set<Like> likes) {
+		if (likes.isEmpty()) {
+			return 0f;
+		} else if (likes.size() == 1) {
+			return likes.iterator().next().getAssessment().getValue();
 		}
+		AtomicLong count = new AtomicLong();
+		AtomicLong sum = new AtomicLong();
+		likes.stream()
+				.map(Like::getAssessment)
+				.filter(assessment -> !assessment.equals(Assessment.UNDEFINED))
+				.map(Assessment::getValue).forEach(value -> {
+					sum.addAndGet(value);
+					count.getAndIncrement();
+				});
 
-		String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
-
-		String sql = String.format("""
-                SELECT f.id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id,
-                       l.user_id, gof.genre_id, dof.director_id
-                FROM films f
-                LEFT JOIN likes l ON f.id = l.film_id
-                LEFT JOIN genres_of_films gof ON f.id = gof.film_id
-                LEFT JOIN directors_of_films dof ON f.id = dof.film_id
-                WHERE f.id IN (%s)
-                """, inSql);
-
-		return findManyFilms(sql, ids.toArray());
+		float average = (float) sum.get() / count.get();
+		return Math.round(average * 100) / 100.0f;
 	}
-
-	@Transactional
-	@Override
-	public Like createLike(long filmId, int assessmentValue, long userId) {
-		long likeId = insertWithKeyHolder(
-				"INSERT INTO assessments (film_id, user_id, assessment) VALUES (?, ?, ?)",
-				filmId,
-				userId,
-				assessmentValue
-		);
-		updateAverageAssessment(filmId);
-		return Like.builder()
-				.id(likeId)
-				.assessment(Assessment.of(assessmentValue))
-				.userId(userId)
-				.build();
-	}
-
-	private void updateAverageAssessment(long filmId) {
-		Optional<Film> optionalFilm = findOneByIdInTable(filmId, "films");
-		optionalFilm.ifPresent(film -> {
-			film.setAssessments(getLikesByFilmId(filmId));
-			film.getAverageAssessment();
-			updateFilm(film);
-		});
-	}
-
 }

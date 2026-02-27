@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,59 +25,39 @@ public class Film {
 	@Builder.Default
 	private Duration duration = Duration.ZERO;
 
+	private Integer mpaId;
+
+	private float rate;
+
+//	@Builder.Default
+//	private Set<Like> likes = new HashSet<>();
+
 	@Builder.Default
 	private Set<Integer> genreIds = new HashSet<>();
-
-	private Integer mpaId;
 
 	@Builder.Default
 	private Set<Integer> directorIds = new HashSet<>();
 
-	@Builder.Default
-	private Set<Long> likes = new HashSet<>();
-
-	@JsonProperty(value = "rate")
-	private int likesCount;
-
-	@Builder.Default
-	private Set<Like> assessments = new HashSet<>();
-
-	@JsonProperty(value = "assessment")
-	private float averageAssessment;
-
-	public float getAverageAssessment() {
-		if (assessments.isEmpty()) {
-			return 0f;
-		} else if (assessments.size() == 1) {
-			return assessments.iterator().next().getAssessment().getValue();
-		}
-		AtomicLong count = new AtomicLong();
-		AtomicLong sum = new AtomicLong();
-		assessments.stream()
-				.map(Like::getAssessment)
-				.filter(assessment -> !assessment.equals(Assessment.UNDEFINED))
-				.map(Assessment::getValue).forEach(value -> {
-			sum.addAndGet(value);
-			count.getAndIncrement();
-		});
-
-		float average = (float) sum.get() / count.get();
-		averageAssessment = Math.round(average * 100) / 100.0f;
-		return averageAssessment;
-	}
-
-	public int getLikesCount() {
-		likesCount = likes.size();
-		return likesCount;
-	}
-
-	public void setLike(User user) {
-		likes.add(user.getId());
-	}
-
-	public void removeLike(User user) {
-		likes.remove(user.getId());
-	}
+//	public float getRate() {
+//		if (likes.isEmpty()) {
+//			return 0f;
+//		} else if (likes.size() == 1) {
+//			return likes.iterator().next().getAssessment().getValue();
+//		}
+//		AtomicLong count = new AtomicLong();
+//		AtomicLong sum = new AtomicLong();
+//		likes.stream()
+//				.map(Like::getAssessment)
+//				.filter(assessment -> !assessment.equals(Assessment.UNDEFINED))
+//				.map(Assessment::getValue).forEach(value -> {
+//			sum.addAndGet(value);
+//			count.getAndIncrement();
+//		});
+//
+//		float average = (float) sum.get() / count.get();
+//		rate = Math.round(average * 100) / 100.0f;
+//		return rate;
+//	}
 
 	public void addGenreId(int genreId) {
 		genreIds.add(genreId);
@@ -88,7 +67,7 @@ public class Film {
 		directorIds.add(directorId);
 	}
 
-	public void addLike(long userId) {
-		likes.add(userId);
-	}
+//	public void addLike(Like like) {
+//		likes.add(like);
+//	}
 }

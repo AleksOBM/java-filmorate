@@ -32,8 +32,8 @@ public interface FilmStorage {
 	/// Получить топ фильмов по фильтрам
 	Collection<Film> getTopByFilters(Integer count, Integer genreId, String year);
 
-	/// Поставить лайк
-	void setLike(long filmId, long userId);
+	/// Поставить лайк с оценкой (по умолчанию оценка 10)
+	Like createLike(long filmId, long userId, Assessment assessment);
 
 	/// Убрать лайк
 	void removeLike(long filmId, long userId);
@@ -41,8 +41,8 @@ public interface FilmStorage {
 	/// Получить список фильмов по id режиссера
 	Collection<Film> getALLFilmsOfDirector(Integer directorId);
 
-	/// Метод для получения матрицы лайков всех пользователей
-	Map<Long, Set<Long>> getAllLikes();
+	/// Получить все лайки
+	Set<Like> getAllLikes();
 
 	/// Получить список филиьов, которые понравились обоим пользователям
 	Collection<Film> getCommonLikedFilms(long userId, long friendId);
@@ -53,7 +53,6 @@ public interface FilmStorage {
 	/// Удаление фильма по id
 	void removeFilm(long filmId);
 
+	/// Получить коллекцию фильмов по id фильмов
 	Collection<Film> getFilmsByIds(Collection<Long> ids);
-
-	Like createLike(long filmId, int assessmentValue, long userId);
 }

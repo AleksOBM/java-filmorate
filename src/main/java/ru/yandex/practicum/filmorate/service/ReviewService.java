@@ -12,8 +12,8 @@ import ru.yandex.practicum.filmorate.dto.request.create.ReviewCreateRequest;
 import ru.yandex.practicum.filmorate.dto.request.update.ReviewUpdateRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.service.util.EventType;
+import ru.yandex.practicum.filmorate.service.util.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;

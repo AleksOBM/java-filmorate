@@ -20,12 +20,7 @@ public class FilmDto {
 	private String description;
 	private LocalDate releaseDate;
 	private Duration duration;
-
-	@JsonProperty("rate")
-	int likesCount;
-
-	@JsonProperty("assessment")
-	float averageAssessment;
+	float rate;
 
 	@Builder.Default
 	private MpaDto mpa = new MpaDto();

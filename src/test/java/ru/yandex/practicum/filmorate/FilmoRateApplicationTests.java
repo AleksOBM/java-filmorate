@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -279,17 +280,17 @@ class FilmoRateApplicationTests {
 			Film film2 = addRandomFilm();
 			Film film3 = addRandomFilm();
 
-			filmStorage.setLike(film2.getId(), user1.getId());
-			filmStorage.setLike(film2.getId(), user2.getId());
-			filmStorage.setLike(film2.getId(), user3.getId());
-			film2.setLikes(Set.of(user1.getId(), user2.getId(), user3.getId()));
+			filmStorage.createLike(film2.getId(), user1.getId(), Assessment.TEN);
+			filmStorage.createLike(film2.getId(), user2.getId(), Assessment.TEN);
+			filmStorage.createLike(film2.getId(), user3.getId(), Assessment.TEN);
+			film2 = filmStorage.findById(film2.getId()).orElse(Film.builder().build());
 
-			filmStorage.setLike(film3.getId(), user1.getId());
-			filmStorage.setLike(film3.getId(), user2.getId());
-			film3.setLikes(Set.of(user1.getId(), user2.getId()));
+			filmStorage.createLike(film3.getId(), user1.getId(), Assessment.TEN);
+			filmStorage.createLike(film3.getId(), user2.getId(), Assessment.TEN);
+			film3 = filmStorage.findById(film3.getId()).orElse(Film.builder().build());
 
-			filmStorage.setLike(film1.getId(), user2.getId());
-			film1.setLikes(Set.of(user2.getId()));
+			filmStorage.createLike(film1.getId(), user2.getId(), Assessment.TEN);
+			film1 = filmStorage.findById(user1.getId()).orElse(Film.builder().build());
 
 			Collection<Film> top = filmStorage.getTop(4);
 			assertThat(top)
@@ -297,7 +298,7 @@ class FilmoRateApplicationTests {
 					.hasSize(4);
 
 			filmStorage.removeLike(film1.getId(), user2.getId());
-			film1.setLikes(HashSet.newHashSet(0));
+			film1 = filmStorage.findById(user1.getId()).orElse(Film.builder().build());
 
 			Collection<Film> newTop = filmStorage.getTop(4);
 			assertThat(newTop)
@@ -308,15 +309,18 @@ class FilmoRateApplicationTests {
 
 		@Test
 		void likes2() {
-//			Assessment assessment1 = Assessment.of(3);
-//			Assessment assessment2 = Assessment.of(4);
-//			Assessment assessment3 = Assessment.of(7);
-//			Assessment assessment4 = Assessment.of(999);
-//
-//			Film film1 = addRandomFilm();
-//			film1.setAssessments(Set.of(assessment1, assessment2, assessment3, assessment4));
-//
-//			assertThat(film1.getAverageAssessment()).isEqualTo(4.67f);
+			Film film1 = filmStorage.createFilm(addRandomFilm());
+			User user1 = userStorage.createUser(addRandomUser());
+
+			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.THREE);
+			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(4));
+			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(null));
+			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(999));
+
+			film1 = filmStorage.findById(film1.getId()).orElse(null);
+
+			Assertions.assertNotNull(film1);
+			assertThat(film1.getRate()).isEqualTo(4.67f);
 		}
 
 		@Test
@@ -334,7 +338,6 @@ class FilmoRateApplicationTests {
 			Collection<Integer> genreIds = genreStorage.getAllGenres().stream().map(Genre::getId).toList();
 
 			assertThat(genreIds).containsAll(film1.getGenreIds());
-
 		}
 
 		@Test

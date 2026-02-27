@@ -21,7 +21,7 @@ CREATE TABLE films (
     release_date date NOT NULL,
     duration int NOT NULL,
     mpa_id int NOT NULL,
-    assessment real
+    rate real NOT NULL
 );
 
 CREATE TABLE genres (
@@ -52,12 +52,6 @@ CREATE TABLE mpa (
 );
 
 CREATE TABLE likes (
-    id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_id bigint NOT NULL,
-    film_id bigint NOT NULL
-);
-
-CREATE TABLE assessments (
     id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
     film_id bigint NOT NULL,
     user_id bigint NOT NULL,
@@ -110,12 +104,6 @@ REFERENCES users (id) ON DELETE CASCADE;
 ALTER TABLE likes ADD CONSTRAINT fk_likes_film_id FOREIGN KEY(film_id)
 REFERENCES films (id) ON DELETE CASCADE;
 
-ALTER TABLE assessments ADD CONSTRAINT fk_assessments_user_id FOREIGN KEY(user_id)
-REFERENCES users (id) ON DELETE CASCADE;
-
-ALTER TABLE assessments ADD CONSTRAINT fk_assessments_film_id FOREIGN KEY(film_id)
-REFERENCES films (id) ON DELETE CASCADE;
-
 ALTER TABLE DIRECTORS_OF_FILMS ADD CONSTRAINT fk_directors_of_films_director_id FOREIGN KEY(director_id)
 REFERENCES directors (id) ON DELETE CASCADE;
 
@@ -145,6 +133,8 @@ CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends (user_id);
 CREATE INDEX IF NOT EXISTS idx_friends_friend_id ON friends (friend_id);
 
 CREATE INDEX IF NOT EXISTS idx_films_film_name ON films (film_name);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_likes_film_id_user_id ON likes (film_id, user_id);
 
 CREATE INDEX IF NOT EXISTS idx_reviews_film_id ON reviews (film_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews (user_id);

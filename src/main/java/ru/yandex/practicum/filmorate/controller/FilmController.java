@@ -38,8 +38,8 @@ public class FilmController {
 	}
 
 	@GetMapping("/common")
-	public Collection<FilmDto> getCommonLikedFilms(@RequestParam(required = true) Long userId,
-	                                               @RequestParam(required = true) Long friendId) {
+	public Collection<FilmDto> getCommonLikedFilms(@RequestParam Long userId,
+	                                               @RequestParam Long friendId) {
 		return filmService.getCommonLikedFilms(userId, friendId);
 	}
 
@@ -67,19 +67,18 @@ public class FilmController {
 		return filmService.update(request);
 	}
 
-	@PutMapping("/{filmId}/assessment/{assessment}/user/{userId}")
-	public void setAssessment(@PathVariable long filmId,@PathVariable int assessment, @PathVariable long userId) {
-		filmService.changeAssessment(LikeAction.SET, filmId, assessment, userId);
-	}
-
-	@PutMapping("/{filmId}/like/{userId}")
-	public void setLike(@PathVariable long filmId, @PathVariable long userId) {
-		filmService.changeLike(LikeAction.SET, filmId, userId);
+	@PutMapping({"/{filmId}/like/{userId}/{assessment}", "/{filmId}/like/{userId}"})
+	public void setLike(
+			@PathVariable long filmId,
+			@PathVariable long userId,
+			@PathVariable(required = false) Integer assessment
+	) {
+		filmService.changeLike(LikeAction.SET, filmId, userId, Assessment.of(assessment));
 	}
 
 	@DeleteMapping("/{filmId}/like/{userId}")
 	public void deleteLike(@PathVariable long filmId, @PathVariable long userId) {
-		filmService.changeLike(LikeAction.REMOVE, filmId, userId);
+		filmService.changeLike(LikeAction.REMOVE, filmId, userId, null);
 	}
 
 	@DeleteMapping("/{filmId}")

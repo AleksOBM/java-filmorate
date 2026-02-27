@@ -8,12 +8,17 @@ public enum Assessment {
 
 	private int value;
 
-	public static Assessment of(int value) {
+	public static Assessment of(Integer value) {
+		if (value == null) {
+			value = 10;
+		}
+
 		Assessment result = Assessment.UNDEFINED;
 		if (value < 1 || value > 10) {
 			result.setValue(value);
 			return result;
 		}
+
 		result = values()[value];
 		result.setValue(result.ordinal());
 		return result;
