@@ -8,14 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.dal.database.FilmDbStorage;
-import ru.yandex.practicum.filmorate.dal.database.GenreDbStorage;
-import ru.yandex.practicum.filmorate.dal.database.MpaDbStorage;
-import ru.yandex.practicum.filmorate.dal.database.UserDbStorage;
-import ru.yandex.practicum.filmorate.dal.rowmappers.FilmRowMapper;
-import ru.yandex.practicum.filmorate.dal.rowmappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.dal.rowmappers.MpaRowMapper;
-import ru.yandex.practicum.filmorate.dal.rowmappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.dal.database.*;
+import ru.yandex.practicum.filmorate.dal.rowmappers.*;
 import ru.yandex.practicum.filmorate.dto.request.update.FilmUpdateRequest;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
@@ -32,6 +26,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 		FilmDbStorage.class, FilmRowMapper.class,
 		GenreDbStorage.class, GenreRowMapper.class,
 		MpaDbStorage.class, MpaRowMapper.class,
+		DirectorDbStorage.class, DirectorRowMapper.class,
 		FilmMapper.class, UserMapper.class
 })
 @JdbcTest
@@ -42,18 +37,21 @@ class FilmoRateApplicationTests {
 	private final FilmDbStorage filmStorage;
 	private final GenreDbStorage genreStorage;
 	private final MpaDbStorage mpaStorage;
+	private final DirectorDbStorage directorStorage;
 
 	@Autowired
 	FilmoRateApplicationTests(
 			UserDbStorage userStorage,
 			FilmDbStorage filmStorage,
 			GenreDbStorage genreStorage,
-			MpaDbStorage mpaStorage
+			MpaDbStorage mpaStorage,
+			DirectorDbStorage directorStorage
 	) {
 		this.userStorage = userStorage;
 		this.filmStorage = filmStorage;
 		this.genreStorage = genreStorage;
 		this.mpaStorage = mpaStorage;
+		this.directorStorage = directorStorage;
 	}
 
 	private String generateRandomText(int length, String addAfterStr, Character... addSynbols) {
@@ -114,6 +112,14 @@ class FilmoRateApplicationTests {
 				.mpaId(1)
 				.genreIds(Set.of(1, 2))
 				.build());
+	}
+
+	private Director addRandomDirector() {
+		return directorStorage.createDirector(
+				Director.builder()
+						.name(generateRandomText(20, "", ' '))
+						.build()
+		);
 	}
 
 	@Nested
@@ -197,6 +203,23 @@ class FilmoRateApplicationTests {
 			assertThat(userStorage.getFriendIds(id2)).isEqualTo(Set.of(id1, id3));
 		}
 
+		@Test
+		void recomendations() {
+			User user1 = addRandomUser();
+			User user2 = addRandomUser();
+			User user3 = addRandomUser();
+
+			Film film1 = addRandomFilm();
+			Film film2 = addRandomFilm();
+			Film film3 = addRandomFilm();
+
+			filmStorage.addLike(film1.getId(), user1.getId(), Assessment.SEVEN);
+			filmStorage.addLike(film2.getId(), user2.getId(), Assessment.EIGHT);
+			filmStorage.addLike(film3.getId(), user3.getId(), Assessment.NINE);
+
+
+		}
+
 	}
 
 	@Nested
@@ -204,7 +227,7 @@ class FilmoRateApplicationTests {
 	class Films {
 
 		@Test
-		public void testFindUserById() {
+		public void testFindFilmById() {
 			long id = addFifstFilm().getId();
 			Optional<Film> filmOptional = filmStorage.findById(id);
 
@@ -224,10 +247,7 @@ class FilmoRateApplicationTests {
 								);
 								assertThat(film).hasFieldOrPropertyWithValue("mpaId", 1);
 								assertThat(film).hasFieldOrPropertyWithValue("genreIds", Set.of(1, 2));
-								assertThat(film).hasFieldOrPropertyWithValue(
-										"likes", HashSet.newHashSet(0)
-								);
-								assertThat(film).hasFieldOrPropertyWithValue("likesCount", 0);
+								assertThat(film).hasFieldOrPropertyWithValue("rate", 0.0f);
 							}
 					);
 		}
@@ -268,59 +288,26 @@ class FilmoRateApplicationTests {
 		}
 
 		@Test
-		public void likes() {
+		void likes() {
+			Film film1 = addRandomFilm();
+
 			User user1 = addRandomUser();
 			User user2 = addRandomUser();
 			User user3 = addRandomUser();
 
-			addRandomFilm();
-			addRandomFilm();
-
-			Film film1 = addRandomFilm();
-			Film film2 = addRandomFilm();
-			Film film3 = addRandomFilm();
-
-			filmStorage.createLike(film2.getId(), user1.getId(), Assessment.TEN);
-			filmStorage.createLike(film2.getId(), user2.getId(), Assessment.TEN);
-			filmStorage.createLike(film2.getId(), user3.getId(), Assessment.TEN);
-			film2 = filmStorage.findById(film2.getId()).orElse(Film.builder().build());
-
-			filmStorage.createLike(film3.getId(), user1.getId(), Assessment.TEN);
-			filmStorage.createLike(film3.getId(), user2.getId(), Assessment.TEN);
-			film3 = filmStorage.findById(film3.getId()).orElse(Film.builder().build());
-
-			filmStorage.createLike(film1.getId(), user2.getId(), Assessment.TEN);
-			film1 = filmStorage.findById(user1.getId()).orElse(Film.builder().build());
-
-			Collection<Film> top = filmStorage.getTop(4);
-			assertThat(top)
-					.contains(film1, film2, film3)
-					.hasSize(4);
-
-			filmStorage.removeLike(film1.getId(), user2.getId());
-			film1 = filmStorage.findById(user1.getId()).orElse(Film.builder().build());
-
-			Collection<Film> newTop = filmStorage.getTop(4);
-			assertThat(newTop)
-					.contains(film2, film3)
-					.doesNotContain(film1)
-					.hasSize(4);
-		}
-
-		@Test
-		void likes2() {
-			Film film1 = filmStorage.createFilm(addRandomFilm());
-			User user1 = userStorage.createUser(addRandomUser());
-
-			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.THREE);
-			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(4));
-			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(null));
-			filmStorage.createLike(film1.getId(), user1.getId(), Assessment.of(999));
+			filmStorage.addLike(film1.getId(), user1.getId(), Assessment.ONE);
+			filmStorage.addLike(film1.getId(), user2.getId(), Assessment.of(3));
+			filmStorage.addLike(film1.getId(), user3.getId(), Assessment.of(null));
 
 			film1 = filmStorage.findById(film1.getId()).orElse(null);
-
 			Assertions.assertNotNull(film1);
 			assertThat(film1.getRate()).isEqualTo(4.67f);
+
+			filmStorage.removeLike(film1.getId(), user1.getId());
+
+			film1 = filmStorage.findById(film1.getId()).orElse(null);
+			Assertions.assertNotNull(film1);
+			assertThat(film1.getRate()).isEqualTo(6.5f);
 		}
 
 		@Test
@@ -355,6 +342,38 @@ class FilmoRateApplicationTests {
 			Collection<Integer> mpaIds = mpaStorage.getAllMpa().stream().map(Mpa::getId).toList();
 
 			assertThat(mpaIds).containsAll(film1.getGenreIds());
+
+		}
+
+		@Test
+		void top() {
+
+			User user1 = addRandomUser();
+
+			Film film1 = addRandomFilm();
+			Film film2 = addRandomFilm();
+			Film film3 = addRandomFilm();
+
+			Director director = addRandomDirector();
+			film1.setDirectorIds(Set.of(director.getId()));
+			film2.setDirectorIds(Set.of(director.getId()));
+			film3.setDirectorIds(Set.of(director.getId()));
+
+			film1 = filmStorage.updateFilm(film1);
+			film2 = filmStorage.updateFilm(film2);
+			film3 = filmStorage.updateFilm(film3);
+
+			filmStorage.addLike(film1.getId(),  user1.getId(), Assessment.ONE);
+			filmStorage.addLike(film2.getId(),  user1.getId(), Assessment.NINE);
+			filmStorage.addLike(film3.getId(),  user1.getId(), Assessment.SIX);
+
+			assertThat(filmStorage.findById(film1.getId()).orElseThrow().getRate()).isEqualTo(1);
+			assertThat(filmStorage.findById(film2.getId()).orElseThrow().getRate()).isEqualTo(9);
+			assertThat(filmStorage.findById(film3.getId()).orElseThrow().getRate()).isEqualTo(6);
+
+			Collection<Film> films = filmStorage.getTop(2);
+
+			assertThat(films).containsExactly(film2, film3);
 
 		}
 

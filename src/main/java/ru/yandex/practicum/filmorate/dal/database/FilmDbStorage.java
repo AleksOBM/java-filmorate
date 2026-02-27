@@ -78,11 +78,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return filmOptional;
 	}
 
-	private Set<Like> getLikesByFilmId(long filmId) {
-		return jdbc.query(SQL_FILMS_FIND_LIKES_BY_FILM_ID, new LikeRowMapper(), filmId).stream()
-				.collect(Collectors.toUnmodifiableSet());
-	}
-
 	@Override
 	public Collection<Film> findAll() {
 		return findManyFilms(SQL_FILMS_FIND_ALL);
@@ -90,8 +85,8 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	@Transactional
 	@Override
-	public Like createLike(long filmId, long userId, Assessment assessment) {
-		long likeId = insertWithKeyHolder(
+	public void addLike(long filmId, long userId, Assessment assessment) {
+		jdbc.update(
 				SQL_FILMS_SET_LIKE,
 				filmId,
 				userId,
@@ -99,13 +94,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		);
 
 		float rate = calculateRating(getLikesByFilmId(filmId));
-		jdbc.update("UPDATE films SET rate = ?", rate);
-
-		return Like.builder()
-				.id(likeId)
-				.assessment(assessment)
-				.userId(userId)
-				.build();
+		jdbc.update("UPDATE films SET rate = ? WHERE id = ?", rate, filmId);
 	}
 
 	@Override
@@ -125,16 +114,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	@Override
 	public Collection<Film> getTopByFilters(Integer top, Integer genreId, String year) {
-		Collection<Film> films;
-		if (genreId != null && year != null && !year.isEmpty()) {
+		Collection<Film> films = List.of();
+		if (genreId != null && year != null && !year.isBlank()) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRE_AND_YEAR, Integer.parseInt(year), genreId, top);
-		} else if (year != null && !year.isEmpty()) {
+		} else if (year != null && !year.isBlank()) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_YEAR, Integer.parseInt(year), top);
 		} else if (genreId != null) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRES, genreId, top);
-		} else {
-			films = findManyByQuery(SQL_FILMS_FIND_TOP, top);
 		}
+
 		return films.stream().peek(film -> {
 			Set<Integer> genres = getGenreIdsByFilmId(film.getId());
 			film.setGenreIds(new HashSet<>(genres));
@@ -198,6 +186,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		String sql = String.format(SQL_FILMS_GET_BY_IDS, inSql);
 
 		return findManyFilms(sql, ids.toArray());
+	}
+
+	private Set<Like> getLikesByFilmId(long filmId) {
+		return jdbc.query(SQL_FILMS_FIND_LIKES_BY_FILM_ID, new LikeRowMapper(), filmId).stream()
+				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private void insertGenreIds(Film film) {

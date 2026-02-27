@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -51,7 +50,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public Like createLike(long filmId, long userId, Assessment assessment) {
+	public void addLike(long filmId, long userId, Assessment assessment) {
 		throw new MethodNotImplementedException();
 	}
 

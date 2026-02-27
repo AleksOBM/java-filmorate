@@ -8,6 +8,10 @@ public enum Assessment {
 
 	private int value;
 
+	Assessment() {
+		this.value = ordinal();
+	}
+
 	public static Assessment of(Integer value) {
 		if (value == null) {
 			value = 10;

@@ -262,6 +262,8 @@ public class UserService {
 			return Collections.emptyList();
 		}
 
-		return filmService.getFilmsByIds(recommendedFilmIds);
+		return filmService.getFilmsByIds(recommendedFilmIds).stream()
+				.filter(filmDto -> filmDto.getRate() > 5.0f)
+				.toList();
 	}
 }

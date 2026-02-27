@@ -9,11 +9,10 @@ public class FilmQueryes {
 			          f.release_date,
 			          f.duration,
 			          f.mpa_id,
-			          l.user_id,
+			          f.rate,
 			          gof.genre_id,
 			          dof.director_id
 			FROM      films f
-			LEFT JOIN likes l ON f.id = l.film_id
 			LEFT JOIN genres_of_films gof ON f.id = gof.film_id
 			LEFT JOIN directors_of_films dof ON f.id = dof.film_id
 			WHERE     f.id IN (%s)
@@ -26,25 +25,12 @@ public class FilmQueryes {
 			          mrg.RELEASE_DATE,
 			          mrg.DURATION,
 			          mrg.MPA_ID,
-					  mrg.RATE,
-			          gof.GENRE_ID,
-					  dof.DIRECTOR_ID,
-			          user_id
-			FROM      (
-			          SELECT    f.ID,
-			                    f.FILM_NAME,
-			                    DESCRIPTION,
-			                    RELEASE_DATE,
-			                    DURATION,
-			                    MPA_ID,
-						        f.RATE,
-			                    l.USER_ID
-			          FROM      FILMS f
-			          LEFT JOIN LIKES l ON f.ID = l.FILM_ID
-			          ORDER BY  f.ID
-			          ) AS mrg
+			          mrg.RATE,
+			          dof.DIRECTOR_ID,
+			          gof.GENRE_ID
+			FROM      FILMS mrg
 			LEFT JOIN GENRES_OF_FILMS gof ON mrg.id = gof.FILM_ID
-			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.ID = dof.FILM_ID
+			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.ID = dof.FILM_ID;
 			""";
 
 	public static final String SQL_FILMS_FIND_ALL_OF_DIRECTOR = """
@@ -166,34 +152,92 @@ public class FilmQueryes {
 			""";
 
 	public static final String SQL_FILMS_FIND_TOP_BY_GENRES = """
-			SELECT f.*, COUNT(fl.user_id) as likes_count
-			FROM films f
-			LEFT JOIN likes fl ON f.id = fl.film_id
-			LEFT JOIN genres_of_films gr ON f.id = gr.film_id
-			WHERE gr.genre_id = ?
-			GROUP BY f.id
-			ORDER BY likes_count DESC
-			LIMIT ?
+			SELECT    mrg.ID,
+			          mrg.FILM_NAME,
+			          mrg.DESCRIPTION,
+			          mrg.RELEASE_DATE,
+			          mrg.DURATION,
+			          mrg.MPA_ID,
+			          mrg.RATE,
+			          dof.DIRECTOR_ID,
+			          gof.GENRE_ID
+			FROM      (
+			          SELECT    *
+			          FROM      (
+			                    SELECT    *
+			                    FROM      films flm
+			                    WHERE     flm.id IN (
+			                              SELECT    f.id
+			                              FROM      films f
+			                              LEFT JOIN GENRES_OF_FILMS g ON f.ID = g.FILM_ID
+			                              WHERE     g.GENRE_ID = ?
+			                              )
+			                    )
+			          ORDER BY  RATE DESC
+			          LIMIT     ?
+			          ) AS mrg
+			LEFT JOIN GENRES_OF_FILMS gof ON mrg.id = gof.FILM_ID
+			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.id = dof.FILM_ID;
 			""";
 
 	public static final String SQL_FILMS_FIND_TOP_BY_YEAR = """
-			SELECT f.*, COUNT(fl.user_id) as likes_count
-			FROM (SELECT * FROM films WHERE EXTRACT(YEAR FROM release_date) = ?) f
-			LEFT JOIN likes fl ON f.id = fl.film_id
-			GROUP BY f.id
-			ORDER BY likes_count DESC
-			LIMIT ?
+			SELECT    mrg.ID,
+			          mrg.FILM_NAME,
+			          mrg.DESCRIPTION,
+			          mrg.RELEASE_DATE,
+			          mrg.DURATION,
+			          mrg.MPA_ID,
+			          mrg.RATE,
+			          dof.DIRECTOR_ID,
+			          gof.GENRE_ID
+			FROM      (
+			          SELECT    *
+			          FROM      (
+			                    SELECT    *
+			                    FROM      films
+			                    WHERE     EXTRACT(
+			                              YEAR
+			                              FROM      release_date
+			                              ) = ?
+			                    )
+			          ORDER BY  RATE DESC
+			          LIMIT     ?
+			          ) AS mrg
+			LEFT JOIN GENRES_OF_FILMS gof ON mrg.id = gof.FILM_ID
+			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.id = dof.FILM_ID;
 			""";
 
 	public static final String SQL_FILMS_FIND_TOP_BY_GENRE_AND_YEAR = """
-			SELECT f.*, COUNT(fl.user_id) as likes_count
-			FROM (SELECT * FROM films WHERE EXTRACT(YEAR FROM release_date) = ?) f
-			LEFT JOIN likes fl ON f.id = fl.film_id
-			LEFT JOIN genres_of_films gr ON f.id = gr.film_id
-			WHERE gr.genre_id = ?
-			GROUP BY f.id
-			ORDER BY likes_count DESC
-			LIMIT ?
+			SELECT    mrg.ID,
+			          mrg.FILM_NAME,
+			          mrg.DESCRIPTION,
+			          mrg.RELEASE_DATE,
+			          mrg.DURATION,
+			          mrg.MPA_ID,
+			          mrg.RATE,
+			          dof.DIRECTOR_ID,
+			          gof.GENRE_ID
+			FROM      (
+			          SELECT    *
+			          FROM      (
+			                    SELECT    *
+			                    FROM      films flm
+			                    WHERE     EXTRACT(
+			                              YEAR
+			                              FROM      flm.release_date
+			                              ) = ?
+			                    AND       flm.id IN (
+			                              SELECT    f.id
+			                              FROM      films f
+			                              LEFT JOIN GENRES_OF_FILMS g ON f.ID = g.FILM_ID
+			                              WHERE     g.GENRE_ID = ?
+			                              )
+			                    )
+			          ORDER BY  RATE DESC
+			          LIMIT     ?
+			          ) AS mrg
+			LEFT JOIN GENRES_OF_FILMS gof ON mrg.id = gof.FILM_ID
+			LEFT JOIN DIRECTORS_OF_FILMS dof ON mrg.id = dof.FILM_ID;
 			""";
 
 	public static final String SQL_FILMS_FIND_COMMON_LIKED = """
@@ -203,6 +247,7 @@ public class FilmQueryes {
 			       f.release_date,
 			       f.duration,
 			       f.mpa_id,
+				   f.rate,
 			       l_all.user_id,
 			       g.genre_id,
 			       d.director_id,
@@ -227,16 +272,15 @@ public class FilmQueryes {
 			       f.release_date,
 			       f.duration,
 			       f.mpa_id,
+				   f.rate,
 			       m.mpa_name,
 			       gof.genre_id,
-			       dof.director_id,
-			       l.user_id
+			       dof.director_id
 			FROM films f
 			LEFT JOIN mpa m ON f.mpa_id = m.id
 			LEFT JOIN genres_of_films gof ON f.id = gof.film_id
 			LEFT JOIN directors_of_films dof ON f.id = dof.film_id
 			LEFT JOIN directors d ON dof.director_id = d.id
-			LEFT JOIN likes l ON f.id = l.film_id
 			WHERE %s
 			ORDER BY (SELECT COUNT(*) FROM likes WHERE film_id = f.id) DESC, f.id ASC;
 			""";

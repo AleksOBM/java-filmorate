@@ -131,7 +131,7 @@ public class FilmService {
 
 		switch (action) {
 			case SET -> {
-				filmStorage.createLike(filmId, userId, assessment);
+				filmStorage.addLike(filmId, userId, assessment);
 				eventService.addUserEvent(userId, EventType.LIKE, Operation.ADD, filmId);
 			}
 			case REMOVE -> {
@@ -151,7 +151,7 @@ public class FilmService {
 		}
 
 		Collection<Film> films;
-		if (genreId != null || year != null) {
+		if (genreId != null || (year != null && !year.isBlank())) {
 			films = filmStorage.getTopByFilters(count, genreId, year);
 		} else {
 			films = filmStorage.getTop(count);

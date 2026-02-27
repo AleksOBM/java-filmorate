@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -33,7 +32,7 @@ public interface FilmStorage {
 	Collection<Film> getTopByFilters(Integer count, Integer genreId, String year);
 
 	/// Поставить лайк с оценкой (по умолчанию оценка 10)
-	Like createLike(long filmId, long userId, Assessment assessment);
+	void addLike(long filmId, long userId, Assessment assessment);
 
 	/// Убрать лайк
 	void removeLike(long filmId, long userId);
