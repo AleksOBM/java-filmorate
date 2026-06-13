@@ -43,7 +43,6 @@ public final class FilmMapper {
 				.description(film.getDescription())
 				.releaseDate(film.getReleaseDate())
 				.duration(film.getDuration())
-				.likesCount(film.getLikesCount())
 				.mpa(new MpaDto(mpa.getId(), mpa.getName()))
 				.genres(genres.stream()
 						.sorted(Comparator.comparing(Genre::getId))
@@ -54,6 +53,7 @@ public final class FilmMapper {
 						.map(director -> new DirectorDto(director.getId(), director.getName()))
 						.toList()
 				)
+				.rate(film.getRate())
 				.build();
 	}
 
@@ -86,6 +86,8 @@ public final class FilmMapper {
 		film.setDirectorIds(request.getDirectors().stream()
 				.map(Director::getId)
 				.collect(Collectors.toSet()));
+
+		film.getRate();
 
 		return film;
 	}

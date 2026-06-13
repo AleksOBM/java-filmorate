@@ -20,8 +20,6 @@
         <java.version>21</java.version>
         <h2database.version>2.2.220</h2database.version>
         <zolando-logbook.version>3.9.0</zolando-logbook.version>
-
-        <!--     PLUGINS     -->
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>

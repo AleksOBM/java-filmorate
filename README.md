@@ -1,6 +1,18 @@
 # java-filmorate
-The Filmorate project — это приложение для работы с базой данных фильмов. 
+
+![Static Badge](https://img.shields.io/badge/Java-21-green)
+![Static Badge](https://img.shields.io/badge/Spring_Boot-3.5.9-green)
+![Static Badge](https://img.shields.io/badge/JDBCTemplate-8A2BE2)
+![Static Badge](https://img.shields.io/badge/Lombok-red)
+![Static Badge](https://img.shields.io/badge/H2_database-blue)
+![Static Badge](https://img.shields.io/badge/DockerFile-blue)
+![Static Badge](https://img.shields.io/badge/JUnit-5-orange)
+![Static Badge](https://img.shields.io/badge/Maven-orange)
+
+**The Filmorate project** — это бэкенд приложения для работы с базой данных фильмов.
 А также площадка для общения и взаимодействия пользователей.
+
+![preview](ChatGPT%20Image.png)
 
 ### Основные возможности
 - Хранение данных о фильмах  
@@ -45,15 +57,7 @@ The Filmorate project — это приложение для работы с б�
 - и подобные
 ### Примеры пользовательских запросов (Request Examples)
 ![ExamplesOfRequests](ExamplesOfRequests.png)
-### Архитектура и структура проекта (Architecture and Project Structure) 
-Проект использует Spring Boot версии 3.5.9 и включает в себя следующие основные зависимости:
-- spring-boot-starter-web 
-- spring-boot-starter-test 
-- spring-boot-starter-validation 
-- spring-boot-starter-jdbc 
-- h2database - lombok 
-- logback-classic 
-- logbook-spring-boot-starter
+
 ### Схема базы данных (Database map)
 ![DatabaseMap](FILMO_RATE_DATABASE_MAP.png "Database map:")
 ### Примеры запросов к базе данных:

@@ -7,12 +7,17 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
+import ru.yandex.practicum.filmorate.dal.rowmappers.LikeRowMapper;
 import ru.yandex.practicum.filmorate.exception.InternalServerException;
+import ru.yandex.practicum.filmorate.model.Assessment;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
 
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.dal.database.sql.FilmQueryes.*;
 
@@ -34,12 +39,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 				film.getDescription(),
 				film.getReleaseDate(),
 				film.getDuration().toMinutes(),
-				film.getMpaId()
+				film.getMpaId(),
+				0.0f
 		);
 		film.setId(id);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return findById(id).get();
+		return film;
 	}
 
 	@Override
@@ -56,15 +62,19 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		);
 		insertGenreIds(film);
 		insertDirectorIds(film);
-		return findById(film.getId()).get();
+		return film;
 	}
 
 	@Override
 	@Transactional
 	public Optional<Film> findById(long filmId) {
 		Optional<Film> filmOptional = findOneByIdInTable(filmId, "films");
-		filmOptional.ifPresent(film -> film.setGenreIds(getGenreIdsByFilmId(filmId)));
-		filmOptional.ifPresent(film -> film.setDirectorIds(getDirectorIdsByFilmId(filmId)));
+		filmOptional.ifPresent(film -> {
+			film.setGenreIds(getGenreIdsByFilmId(filmId));
+			film.setDirectorIds(getDirectorIdsByFilmId(filmId));
+			film.setRate(calculateRating(getLikesByFilmId(filmId)));
+		});
+
 		return filmOptional;
 	}
 
@@ -73,9 +83,18 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return findManyFilms(SQL_FILMS_FIND_ALL);
 	}
 
+	@Transactional
 	@Override
-	public void setLike(long filmId, long userId) {
-		updateWithControl(SQL_FILMS_SET_LIKE, filmId, userId);
+	public void addLike(long filmId, long userId, Assessment assessment) {
+		jdbc.update(
+				SQL_FILMS_SET_LIKE,
+				filmId,
+				userId,
+				assessment.getValue()
+		);
+
+		float rate = calculateRating(getLikesByFilmId(filmId));
+		jdbc.update("UPDATE films SET rate = ? WHERE id = ?", rate, filmId);
 	}
 
 	@Override
@@ -95,16 +114,15 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
 	@Override
 	public Collection<Film> getTopByFilters(Integer top, Integer genreId, String year) {
-		Collection<Film> films;
-		if (genreId != null && year != null && !year.isEmpty()) {
+		Collection<Film> films = List.of();
+		if (genreId != null && year != null && !year.isBlank()) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRE_AND_YEAR, Integer.parseInt(year), genreId, top);
-		} else if (year != null && !year.isEmpty()) {
+		} else if (year != null && !year.isBlank()) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_YEAR, Integer.parseInt(year), top);
 		} else if (genreId != null) {
 			films = findManyByQuery(SQL_FILMS_FIND_TOP_BY_GENRES, genreId, top);
-		} else {
-			films = findManyByQuery(SQL_FILMS_FIND_TOP, top);
 		}
+
 		return films.stream().peek(film -> {
 			Set<Integer> genres = getGenreIdsByFilmId(film.getId());
 			film.setGenreIds(new HashSet<>(genres));
@@ -116,18 +134,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	@Override
 	public boolean checkFilmIsNotPresent(Long filmId) {
 		return checkIdIsNotPresentInTable(filmId, "films");
-	}
-
-	@Override
-	public Map<Long, Set<Long>> getAllLikes() {
-		String sql = "SELECT user_id, film_id FROM likes";
-		Map<Long, Set<Long>> allLikes = new HashMap<>();
-		jdbc.query(sql, (rs) -> {
-			long userId = rs.getLong("user_id");
-			long filmId = rs.getLong("film_id");
-			allLikes.computeIfAbsent(userId, k -> new HashSet<>()).add(filmId);
-		});
-		return allLikes;
 	}
 
 	@Override
@@ -154,6 +160,41 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 	@Override
 	public void removeFilm(long filmId) {
 		updateWithControl("DELETE FROM films WHERE id = ?", filmId);
+	}
+
+	@Override
+	public Set<Like> getAllLikes() {
+		String sql = "SELECT user_id, film_id, assessment FROM likes";
+		Set<Like> allLikes = new HashSet<>();
+		jdbc.query(sql, (rs) -> {
+			long filmId = rs.getLong("film_id");
+			long userId = rs.getLong("user_id");
+			int assessment = rs.getInt("assessment");
+			Like like = Like.builder()
+					.filmId(filmId)
+					.userId(userId)
+					.assessment(Assessment.of(assessment))
+					.build();
+			allLikes.add(like);
+		});
+		return allLikes;
+	}
+
+	@Override
+	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
+		String sql = String.format(SQL_FILMS_GET_BY_IDS, inSql);
+
+		return findManyFilms(sql, ids.toArray());
+	}
+
+	private Set<Like> getLikesByFilmId(long filmId) {
+		return jdbc.query(SQL_FILMS_FIND_LIKES_BY_FILM_ID, new LikeRowMapper(), filmId).stream()
+				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private void insertGenreIds(Film film) {
@@ -187,8 +228,6 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 						throw new InternalServerException("Не удалось получить все фильмы из базы.\n" + e.getMessage());
 					}
 				});
-				long userId = rs.getLong("user_id");
-				if (!rs.wasNull() && film != null) film.addLike(userId);
 				int genreId = rs.getInt("genre_id");
 				if (!rs.wasNull() && film != null) film.addGenreId(genreId);
 				int directorId = rs.getInt("director_id");
@@ -206,24 +245,23 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 		return findColumnByQuery(SQL_FILMS_FIND_DIRECTORIDS_BY_FILM_ID, Integer.class, filmId);
 	}
 
-	@Override
-	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
-		if (ids == null || ids.isEmpty()) {
-			return Collections.emptyList();
+	private float calculateRating(Set<Like> likes) {
+		if (likes.isEmpty()) {
+			return 0f;
+		} else if (likes.size() == 1) {
+			return likes.iterator().next().getAssessment().getValue();
 		}
+		AtomicLong count = new AtomicLong();
+		AtomicLong sum = new AtomicLong();
+		likes.stream()
+				.map(Like::getAssessment)
+				.filter(assessment -> !assessment.equals(Assessment.UNDEFINED))
+				.map(Assessment::getValue).forEach(value -> {
+					sum.addAndGet(value);
+					count.getAndIncrement();
+				});
 
-		String inSql = String.join(",", Collections.nCopies(ids.size(), "?"));
-
-		String sql = String.format("""
-                SELECT f.id, f.film_name, f.description, f.release_date, f.duration, f.mpa_id,
-                       l.user_id, gof.genre_id, dof.director_id
-                FROM films f
-                LEFT JOIN likes l ON f.id = l.film_id
-                LEFT JOIN genres_of_films gof ON f.id = gof.film_id
-                LEFT JOIN directors_of_films dof ON f.id = dof.film_id
-                WHERE f.id IN (%s)
-                """, inSql);
-
-		return findManyFilms(sql, ids.toArray());
+		float average = (float) sum.get() / count.get();
+		return Math.round(average * 100) / 100.0f;
 	}
 }

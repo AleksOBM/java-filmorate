@@ -3,10 +3,11 @@ package ru.yandex.practicum.filmorate.dal.inmemory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.MethodNotImplementedException;
+import ru.yandex.practicum.filmorate.model.Assessment;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Like;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -49,7 +50,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public void setLike(long filmId, long userId) {
+	public void addLike(long filmId, long userId, Assessment assessment) {
 		throw new MethodNotImplementedException();
 	}
 
@@ -64,7 +65,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 	}
 
 	@Override
-	public Map<Long, Set<Long>> getAllLikes() {
+	public Set<Like> getAllLikes() {
 		throw new MethodNotImplementedException();
 	}
 
@@ -87,4 +88,5 @@ public class InMemoryFilmStorage implements FilmStorage {
 	public Collection<Film> getFilmsByIds(Collection<Long> ids) {
 		throw new MethodNotImplementedException();
 	}
+
 }

@@ -20,7 +20,8 @@ CREATE TABLE films (
     description varchar(200) NOT NULL,
     release_date date NOT NULL,
     duration int NOT NULL,
-    mpa_id int NOT NULL
+    mpa_id int NOT NULL,
+    rate real NOT NULL
 );
 
 CREATE TABLE genres (
@@ -52,8 +53,9 @@ CREATE TABLE mpa (
 
 CREATE TABLE likes (
     id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    film_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    film_id bigint NOT NULL
+    assessment int NOT NULL
 );
 
 CREATE TABLE reviews (
@@ -131,6 +133,8 @@ CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends (user_id);
 CREATE INDEX IF NOT EXISTS idx_friends_friend_id ON friends (friend_id);
 
 CREATE INDEX IF NOT EXISTS idx_films_film_name ON films (film_name);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_likes_film_id_user_id ON likes (film_id, user_id);
 
 CREATE INDEX IF NOT EXISTS idx_reviews_film_id ON reviews (film_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews (user_id);
