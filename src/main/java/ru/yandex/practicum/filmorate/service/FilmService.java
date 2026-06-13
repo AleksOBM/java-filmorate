@@ -15,8 +15,10 @@ import ru.yandex.practicum.filmorate.exception.ParameterNotValidException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.util.EventType;
 import ru.yandex.practicum.filmorate.service.util.FilmSortingAction;
 import ru.yandex.practicum.filmorate.service.util.LikeAction;
+import ru.yandex.practicum.filmorate.service.util.Operation;
 
 import java.util.*;
 
@@ -82,7 +84,7 @@ public class FilmService {
 		log.trace("Применение сортировки");
 		Comparator<Film> comparator = switch (sortingAction) {
 			case YEAR -> Comparator.comparing(Film::getReleaseDate);
-			case LIKES -> Comparator.comparing(Film::getLikesCount).reversed();
+			case RATE -> Comparator.comparing(Film::getRate).reversed();
 			case UNDEFINED -> throw new ParameterNotValidException(
 					sortingAction.getSortingName(),
 					"не подходит. Допустимые значения: " +
@@ -114,23 +116,22 @@ public class FilmService {
 		return films;
 	}
 
-	public void changeLike(LikeAction action, Long filmId, Long userId) {
+	public void changeLike(LikeAction action, Long filmId, Long userId, Assessment assessment) {
 		switch (action) {
 			case SET -> log.info("Добавление лайка пользователя id={} к фильму id={}.", userId, filmId);
 			case REMOVE -> log.info("Удаление лайка пользователя id={} у фильма id={}.", userId, filmId);
 		}
 
-		if (filmStorage.checkFilmIsNotPresent(filmId)) {
-			throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+		if (assessment != null && assessment.equals(Assessment.UNDEFINED)) {
+			throw new ParameterNotValidException("assessment", "может быть только от 1 до 10, либо отсутствовать.");
 		}
 
-		if (userStorage.checkUserIsNotPresent(userId)) {
-			throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
-		}
+		easyCheckFilm(filmId);
+		easyCheckUser(userId);
 
 		switch (action) {
 			case SET -> {
-				filmStorage.setLike(filmId, userId);
+				filmStorage.addLike(filmId, userId, assessment);
 				eventService.addUserEvent(userId, EventType.LIKE, Operation.ADD, filmId);
 			}
 			case REMOVE -> {
@@ -150,7 +151,7 @@ public class FilmService {
 		}
 
 		Collection<Film> films;
-		if (genreId != null || year != null) {
+		if (genreId != null || (year != null && !year.isBlank())) {
 			films = filmStorage.getTopByFilters(count, genreId, year);
 		} else {
 			films = filmStorage.getTop(count);
@@ -163,7 +164,7 @@ public class FilmService {
 								getGenresByIds(film.getGenreIds()),
 								getDirectorsByIds(film.getDirectorIds())
 						)
-				).sorted(Comparator.comparing(FilmDto::getLikesCount).reversed()).toList();
+				).sorted(Comparator.comparing(FilmDto::getRate).reversed()).toList();
 	}
 
 	public Collection<FilmDto> findAll() {
@@ -367,5 +368,17 @@ public class FilmService {
 						getDirectorsByIds(film.getDirectorIds())
 				))
 				.toList();
+	}
+
+	private void easyCheckFilm(long filmId) {
+		if (filmStorage.checkFilmIsNotPresent(filmId)) {
+			throw new NotFoundException("Фильм с id=" + filmId + " не найден.");
+		}
+	}
+
+	private void easyCheckUser(long userId) {
+		if (userStorage.checkUserIsNotPresent(userId)) {
+			throw new NotFoundException("Пользователь с id=" + userId + " не найден.");
+		}
 	}
 }

@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.service.util.EventType;
+import ru.yandex.practicum.filmorate.service.util.Operation;
 
 import java.time.Instant;
 
