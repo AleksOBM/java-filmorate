@@ -170,7 +170,11 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 			long filmId = rs.getLong("film_id");
 			long userId = rs.getLong("user_id");
 			int assessment = rs.getInt("assessment");
-			Like like = Like.builder().filmId(filmId).userId(userId).assessment(Assessment.of(assessment)).build();
+			Like like = Like.builder()
+					.filmId(filmId)
+					.userId(userId)
+					.assessment(Assessment.of(assessment))
+					.build();
 			allLikes.add(like);
 		});
 		return allLikes;

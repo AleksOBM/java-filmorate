@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class Like {
-	long id;
+	Long id;
 	long filmId;
 	long userId;
 	Assessment assessment;
