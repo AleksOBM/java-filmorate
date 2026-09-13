@@ -56,7 +56,67 @@
 - RestFox
 - и подобные
 ### Примеры пользовательских запросов (Request Examples)
-![ExamplesOfRequests](ExamplesOfRequests.png)
+```mermaid
+mindmap
+  root((API))
+    GenreController
+      🌐/genres
+        GET getGenreById /genres/:id
+        GET getAllGenres /genres
+    UserController
+      🌐/users
+        GET findAll /users
+        GET findById /users/:id
+        POST create /users
+        PUT update /users
+        DELETE deleteUser /users/:id
+      🌐/users/:id/friends
+        GET getFriends /users/:id/friends
+        GET getMutualFriends /users/:id/friends/common/:otherId
+        PUT addToFriends /users/:id/friends/:friendId
+        DELETE removeFromFriends /users/:id/friends/:friendId
+      🌐/users/:id/feed
+        GET getEventUsers /users/:id/feed
+        GET getRecommendations /users/:id/recommendations
+    FilmController
+      🌐/films
+        GET findAll /films
+        GET findById /films/:id
+        GET getTop /films/popular
+        GET getCommonLikedFilms /films/common
+        GET getSortedFilmsOfDirector /films/director/:directorId
+        GET search /films/search
+        POST create /films
+        PUT update /films
+        DELETE deleteFilm /films/:id
+      🌐/films/:id/like
+        PUT setLike /films/:id/like/:userId
+        DELETE deleteLike /films/:id/like/:userId
+    MpaController
+      🌐/mpa
+        GET getMpaById /mpa/:mpaId
+        GET getAllMpa /mpa
+    DirectorController
+      🌐/directors
+        GET getAllDirectors /directors
+        GET getDirectorById /directors/:directorId
+        POST createDirector /directors
+        PUT updateDirector /directors
+        DELETE deleteDirector /directors/:directorId
+    ReviewController
+      🌐/reviews
+        GET findById /reviews/:id
+        GET findByFilmId /reviews
+        POST create /reviews
+        PUT update /reviews
+        DELETE delete /reviews/:id
+      🌐/reviews/:id/like
+        PUT addLike /reviews/:id/like/:userId
+        DELETE removeLike /reviews/:id/like/:userId
+      🌐/reviews/:id/dislike
+        PUT addDislike /reviews/:id/dislike/:userId
+        DELETE removeDislike /reviews/:id/dislike/:userId
+```
 
 ### Схема базы данных (Database map)
 ![DatabaseMap](FILMO_RATE_DATABASE_MAP.png "Database map:")
