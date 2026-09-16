@@ -9,12 +9,12 @@
 ![Static Badge](https://img.shields.io/badge/JUnit-5-orange)
 ![Static Badge](https://img.shields.io/badge/Maven-orange)
 
-<img alt="filmorate.png" src="filmorate.png" width="400"/>
+<img alt="filmorate.png" src=".img/filmorate.png" width="400"/>
 
 **The Filmorate project** — это бэкенд приложения для работы с базой данных фильмов.
 А также площадка для общения и взаимодействия пользователей.
 
-<img alt="preview" src="ChatGPT%20Image.png" width="600"/>
+<img alt="preview" src=".img/ChatGPT%20Image.png" width="600"/>
 
 ### Основные возможности
 - Хранение данных о фильмах  
@@ -122,7 +122,7 @@ mindmap
 ```
 
 ### Схема базы данных (Database map)
-![DatabaseMap](FILMO_RATE_DATABASE_MAP.png "Database map:")
+![DatabaseMap](.img/FILMO_RATE_DATABASE_MAP.png "Database map:")
 ### Примеры запросов к базе данных:
 1. Get TOP-10 films:
 ```sql
