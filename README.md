@@ -9,12 +9,10 @@
 ![Static Badge](https://img.shields.io/badge/JUnit-5-orange)
 ![Static Badge](https://img.shields.io/badge/Maven-orange)
 
-<img alt="filmorate.png" src=".img/filmorate.png" width="400"/>
-
 **The Filmorate project** — это бэкенд приложения для работы с базой данных фильмов.
 А также площадка для общения и взаимодействия пользователей.
 
-<img alt="preview" src=".img/ChatGPT%20Image.png" width="600"/>
+<img alt="preview" src=".img/ChatGPT%20Image.png" width="700"/>
 
 ### Основные возможности
 - Хранение данных о фильмах  
