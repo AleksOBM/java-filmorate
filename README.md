@@ -59,8 +59,8 @@
 - и подобные
 ### Примеры пользовательских запросов (Request Examples)
 ```mermaid
-mindmap
 %%{init: { 'mindmap': { 'maxNodeWidth': 500 } }}%%
+mindmap
   root((API))
     GenreController
       🌐/genres
