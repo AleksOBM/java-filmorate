@@ -122,7 +122,9 @@ mindmap
 ```
 
 ### Схема базы данных (Database map)
-![DatabaseMap](.img/FILMO_RATE_DATABASE_MAP.png "Database map:")
+
+<img alt="DatabaseMap" src=".img/FILMO_RATE_DATABASE_MAP_DARK.png" title="Database map:" width="800"/>
+
 ### Примеры запросов к базе данных:
 1. Get TOP-10 films:
 ```sql
